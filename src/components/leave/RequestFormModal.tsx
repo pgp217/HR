@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { LeaveType, Staff } from "@/lib/types";
-import type { NewRequestInput } from "./LeaveManager";
+import type { NewRequestInput } from "./LeaveContext";
 
 interface Props {
   staffList: Staff[];
