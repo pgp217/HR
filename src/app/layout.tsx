@@ -15,13 +15,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "박기표_HR프로젝트 | 개인회생 전산",
   description: "점심 · 당직 · 휴가를 한 곳에서 관리하는 운영 일정 시스템",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="ko"
+      translate="no"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased notranslate`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
