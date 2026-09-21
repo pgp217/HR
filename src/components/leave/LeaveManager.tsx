@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLeave } from "./LeaveContext";
+import { useApproveWithDutySwap } from "@/hooks/useApproveWithDutySwap";
 import SummaryCards from "./SummaryCards";
 import BalanceTable from "./BalanceTable";
 import RequestList from "./RequestList";
@@ -20,11 +21,11 @@ export default function LeaveManager() {
     pendingCount,
     thisMonthUsedDays,
     totalRemainingDays,
-    handleDecision,
     handleCreate,
     handleDelete,
     handleUpdateReason,
   } = useLeave();
+  const decide = useApproveWithDutySwap();
 
   const todayISO = new Date().toISOString().slice(0, 10);
 
@@ -65,7 +66,7 @@ export default function LeaveManager() {
       <RequestList
         requests={requests}
         staffById={staffById}
-        onDecision={handleDecision}
+        onDecision={decide}
         onDelete={handleDelete}
         onUpdateReason={handleUpdateReason}
       />

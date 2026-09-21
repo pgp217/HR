@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useLeave } from "./LeaveContext";
+import { useApproveWithDutySwap } from "@/hooks/useApproveWithDutySwap";
 import RequestList from "./RequestList";
 
 export default function ApprovalsManager() {
-  const { requests, staffById, pendingCount, handleDecision, handleDelete, handleUpdateReason } =
-    useLeave();
+  const { requests, staffById, pendingCount, handleDelete, handleUpdateReason } = useLeave();
+  const decide = useApproveWithDutySwap();
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,7 +32,7 @@ export default function ApprovalsManager() {
       <RequestList
         requests={requests}
         staffById={staffById}
-        onDecision={handleDecision}
+        onDecision={decide}
         onDelete={handleDelete}
         onUpdateReason={handleUpdateReason}
       />
