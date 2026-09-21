@@ -82,7 +82,7 @@ export default function RequestList({
             <th className="px-4 py-2 font-medium">사유</th>
             <th className="px-4 py-2 font-medium">신청일</th>
             <th className="px-4 py-2 font-medium">상태</th>
-            <th className="px-4 py-2 font-medium">액션</th>
+            <th className="px-4 py-2 font-medium">관리</th>
           </tr>
         </thead>
         <tbody>
@@ -179,7 +179,7 @@ export default function RequestList({
                     <button
                       onClick={() => handleDeleteClick(req, staff?.name ?? "직원")}
                       title="신청 삭제"
-                      className="rounded px-1.5 py-1 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
                     >
                       삭제
                     </button>
