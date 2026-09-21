@@ -1,0 +1,94 @@
+import { staffList, initialLeaveRequests } from "@/lib/mock-data";
+import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
+import Link from "next/link";
+
+export default function TodayPage() {
+  const todayISO = toISODate(today());
+  const onLeaveToday = initialLeaveRequests.filter(
+    (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
+  );
+  const pendingCount = initialLeaveRequests.filter((r) => r.status === "승인대기").length;
+  const onLeaveStaffIds = new Set(onLeaveToday.map((r) => r.staffId));
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">{formatKoreanDate(todayISO)} 오늘 현황</h2>
+          <p className="text-sm text-gray-500">직원별 오늘 근무 · 휴가 현황을 확인합니다.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">전체 인원</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{staffList.length}명</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">오늘 휴가</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{onLeaveToday.length}명</p>
+        </div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-700">휴가 승인 대기</p>
+          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount}건</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">정상 근무</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">
+            {staffList.length - onLeaveToday.length}명
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white">
+        <div className="border-b border-gray-100 px-4 py-3">
+          <h3 className="text-sm font-semibold text-gray-900">직원별 오늘 운영 상태</h3>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+              <th className="px-4 py-2 font-medium">직원</th>
+              <th className="px-4 py-2 font-medium">역할</th>
+              <th className="px-4 py-2 font-medium">근무</th>
+              <th className="px-4 py-2 font-medium">점심</th>
+              <th className="px-4 py-2 font-medium">당직</th>
+              <th className="px-4 py-2 font-medium">휴가</th>
+            </tr>
+          </thead>
+          <tbody>
+            {staffList.map((staff) => {
+              const onLeave = onLeaveStaffIds.has(staff.id);
+              const leaveReq = onLeaveToday.find((r) => r.staffId === staff.id);
+              return (
+                <tr key={staff.id} className="border-b border-gray-50 last:border-0">
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
+                  <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
+                  <td className="px-4 py-2.5">
+                    {onLeave ? (
+                      <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {leaveReq?.type}
+                      </span>
+                    ) : (
+                      <span className="text-gray-700">정상근무</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-300">미지정</td>
+                  <td className="px-4 py-2.5 text-gray-300">-</td>
+                  <td className="px-4 py-2.5 text-gray-700">{onLeave ? "휴가" : "-"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-sm text-gray-400">
+        점심·당직 배정 기능은 준비 중입니다. 우선{" "}
+        <Link href="/operations/staff-schedule/leave" className="text-blue-600 underline">
+          휴가·연차 관리
+        </Link>
+        를 이용해주세요.
+      </p>
+    </div>
+  );
+}
