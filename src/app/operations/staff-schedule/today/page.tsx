@@ -1,14 +1,20 @@
-import { staffList, initialLeaveRequests } from "@/lib/mock-data";
-import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
+"use client";
+
 import Link from "next/link";
+import { useLeave } from "@/components/leave/LeaveContext";
+import { useDuty } from "@/components/duty/DutyContext";
+import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
 
 export default function TodayPage() {
   const todayISO = toISODate(today());
-  const onLeaveToday = initialLeaveRequests.filter(
+  const { requests, staffList, pendingCount } = useLeave();
+  const { assignments } = useDuty();
+
+  const onLeaveToday = requests.filter(
     (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
   );
-  const pendingCount = initialLeaveRequests.filter((r) => r.status === "승인대기").length;
   const onLeaveStaffIds = new Set(onLeaveToday.map((r) => r.staffId));
+  const dutyStaffId = assignments[todayISO];
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,6 +64,7 @@ export default function TodayPage() {
             {staffList.map((staff) => {
               const onLeave = onLeaveStaffIds.has(staff.id);
               const leaveReq = onLeaveToday.find((r) => r.staffId === staff.id);
+              const onDuty = staff.id === dutyStaffId;
               return (
                 <tr key={staff.id} className="border-b border-gray-50 last:border-0">
                   <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
@@ -71,7 +78,15 @@ export default function TodayPage() {
                       <span className="text-gray-700">정상근무</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-gray-300">-</td>
+                  <td className="px-4 py-2.5">
+                    {onDuty ? (
+                      <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        당직
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 text-gray-700">{onLeave ? "휴가" : "-"}</td>
                 </tr>
               );
