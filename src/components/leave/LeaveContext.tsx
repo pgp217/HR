@@ -6,7 +6,7 @@ import { staffList, leaveBalances, initialLeaveRequests } from "@/lib/mock-data"
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
 
 const todayISO = toISODate(today());
-const CURRENT_APPROVER = "이서연";
+const CURRENT_APPROVER = "박기표";
 
 export interface NewRequestInput {
   staffId: string;

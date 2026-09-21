@@ -35,7 +35,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -5),
     decidedAt: addDays(t, -4),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr2",
@@ -48,7 +48,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -2),
     decidedAt: addDays(t, -1),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr3",
@@ -83,7 +83,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "반려",
     requestedAt: addDays(t, -12),
     decidedAt: addDays(t, -11),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr6",
@@ -107,7 +107,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -3),
     decidedAt: addDays(t, -3),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr8",
@@ -120,7 +120,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -90),
     decidedAt: addDays(t, -89),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr9",
@@ -133,7 +133,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -50),
     decidedAt: addDays(t, -49),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr10",
@@ -146,7 +146,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -80),
     decidedAt: addDays(t, -79),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr11",
@@ -159,7 +159,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -35),
     decidedAt: addDays(t, -34),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
   {
     id: "lr12",
@@ -172,6 +172,6 @@ export const initialLeaveRequests: LeaveRequest[] = [
     status: "승인",
     requestedAt: addDays(t, -25),
     decidedAt: addDays(t, -24),
-    decidedBy: "이서연",
+    decidedBy: "박기표",
   },
 ];
