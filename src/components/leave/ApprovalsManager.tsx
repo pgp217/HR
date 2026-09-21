@@ -5,7 +5,7 @@ import { useLeave } from "./LeaveContext";
 import RequestList from "./RequestList";
 
 export default function ApprovalsManager() {
-  const { requests, staffById, pendingCount, handleDecision } = useLeave();
+  const { requests, staffById, pendingCount, handleDecision, handleDelete } = useLeave();
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,7 +27,12 @@ export default function ApprovalsManager() {
         <p className="mt-1 text-2xl font-bold text-amber-700">{pendingCount}건</p>
       </div>
 
-      <RequestList requests={requests} staffById={staffById} onDecision={handleDecision} />
+      <RequestList
+        requests={requests}
+        staffById={staffById}
+        onDecision={handleDecision}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

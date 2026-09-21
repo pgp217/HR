@@ -28,6 +28,7 @@ interface LeaveContextValue {
   totalRemainingDays: number;
   handleDecision: (id: string, status: LeaveStatus) => void;
   handleCreate: (input: NewRequestInput) => void;
+  handleDelete: (id: string) => void;
 }
 
 const LeaveContext = createContext<LeaveContextValue | null>(null);
@@ -113,6 +114,10 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     setRequests((prev) => [newRequest, ...prev]);
   }
 
+  function handleDelete(id: string) {
+    setRequests((prev) => prev.filter((r) => r.id !== id));
+  }
+
   const value: LeaveContextValue = {
     requests,
     staffList,
@@ -125,6 +130,7 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     totalRemainingDays,
     handleDecision,
     handleCreate,
+    handleDelete,
   };
 
   return <LeaveContext.Provider value={value}>{children}</LeaveContext.Provider>;

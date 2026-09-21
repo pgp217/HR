@@ -8,6 +8,7 @@ interface Props {
   requests: LeaveRequest[];
   staffById: Map<string, Staff>;
   onDecision: (id: string, status: LeaveStatus) => void;
+  onDelete: (id: string) => void;
 }
 
 const filters: (LeaveStatus | "전체")[] = ["전체", "승인대기", "승인", "반려"];
@@ -18,12 +19,19 @@ const statusStyles: Record<LeaveStatus, string> = {
   반려: "bg-red-50 text-red-700",
 };
 
-export default function RequestList({ requests, staffById, onDecision }: Props) {
+export default function RequestList({ requests, staffById, onDecision, onDelete }: Props) {
   const [filter, setFilter] = useState<(typeof filters)[number]>("승인대기");
 
   const filtered = requests
     .filter((r) => (filter === "전체" ? true : r.status === filter))
     .sort((a, b) => (a.requestedAt < b.requestedAt ? 1 : -1));
+
+  function handleDeleteClick(req: LeaveRequest, staffName: string) {
+    const confirmed = window.confirm(
+      `${staffName}님의 ${req.type} 신청(${formatKoreanDate(req.startDate)})을 삭제할까요? 이 작업은 되돌릴 수 없습니다.`
+    );
+    if (confirmed) onDelete(req.id);
+  }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -91,26 +99,35 @@ export default function RequestList({ requests, staffById, onDecision }: Props) 
                   </span>
                 </td>
                 <td className="px-4 py-2.5">
-                  {req.status === "승인대기" ? (
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => onDecision(req.id, "승인")}
-                        className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
-                      >
-                        승인
-                      </button>
-                      <button
-                        onClick={() => onDecision(req.id, "반려")}
-                        className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
-                      >
-                        반려
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-400">
-                      {req.decidedBy ? `${req.decidedBy} 처리` : "-"}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {req.status === "승인대기" ? (
+                      <>
+                        <button
+                          onClick={() => onDecision(req.id, "승인")}
+                          className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                        >
+                          승인
+                        </button>
+                        <button
+                          onClick={() => onDecision(req.id, "반려")}
+                          className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                          반려
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-400">
+                        {req.decidedBy ? `${req.decidedBy} 처리` : "-"}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => handleDeleteClick(req, staff?.name ?? "직원")}
+                      title="신청 삭제"
+                      className="rounded px-1.5 py-1 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </td>
               </tr>
             );

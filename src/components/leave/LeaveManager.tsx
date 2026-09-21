@@ -22,6 +22,7 @@ export default function LeaveManager() {
     totalRemainingDays,
     handleDecision,
     handleCreate,
+    handleDelete,
   } = useLeave();
 
   const todayISO = new Date().toISOString().slice(0, 10);
@@ -60,7 +61,12 @@ export default function LeaveManager() {
         pendingByStaff={requests.filter((r) => r.status === "승인대기")}
       />
 
-      <RequestList requests={requests} staffById={staffById} onDecision={handleDecision} />
+      <RequestList
+        requests={requests}
+        staffById={staffById}
+        onDecision={handleDecision}
+        onDelete={handleDelete}
+      />
 
       {isFormOpen && (
         <RequestFormModal
