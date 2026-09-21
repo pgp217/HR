@@ -11,9 +11,28 @@ export type LeaveType = "연차" | "반차(오전)" | "반차(오후)" | "경조
 
 export type LeaveStatus = "승인대기" | "승인" | "반려";
 
-export interface LeaveBalance {
+export interface LeaveGrant {
   staffId: string;
-  grantedDays: number; // 올해 발생 연차
+  year: number;
+  granted: number; // 부여
+  carryover: number; // 이월
+  adjustment: number; // 조정 (+/-)
+}
+
+export interface DutyPolicy {
+  weekendIncluded: boolean; // 당직 - 주말 포함
+  holidayIncluded: boolean; // 당직 - 공휴일 포함 (공휴일 데이터 연동 전까지는 저장만 됨)
+  autoExcludeOnLeave: boolean; // 휴가자 자동 제외
+  selectionDeadline: string; // 당일 선택 마감 (HH:mm)
+}
+
+export interface DutyRotationEntry {
+  staffId: string;
+  order: number;
+  active: boolean;
+  excludeStart?: string; // ISO date, 제외 시작
+  excludeEnd?: string; // ISO date, 제외 종료
+  memo?: string;
 }
 
 export interface LeaveRequest {

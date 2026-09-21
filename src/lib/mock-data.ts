@@ -1,4 +1,4 @@
-import type { LeaveBalance, LeaveRequest, Staff } from "./types";
+import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff } from "./types";
 import { addDays, today } from "./date";
 
 export const staffList: Staff[] = [
@@ -11,17 +11,31 @@ export const staffList: Staff[] = [
   { id: "s7", name: "오채원", role: "서무", joinedAt: "2024-02-01" },
 ];
 
-export const leaveBalances: LeaveBalance[] = [
-  { staffId: "s1", grantedDays: 15 },
-  { staffId: "s2", grantedDays: 16 },
-  { staffId: "s3", grantedDays: 15 },
-  { staffId: "s4", grantedDays: 17 },
-  { staffId: "s5", grantedDays: 11 },
-  { staffId: "s6", grantedDays: 15 },
-  { staffId: "s7", grantedDays: 9 },
+const t = today();
+export const CURRENT_YEAR = t.getFullYear();
+
+export const initialLeaveGrants: LeaveGrant[] = [
+  { staffId: "s1", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
+  { staffId: "s2", year: CURRENT_YEAR, granted: 16, carryover: 0, adjustment: 0 },
+  { staffId: "s3", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
+  { staffId: "s4", year: CURRENT_YEAR, granted: 17, carryover: 0, adjustment: 0 },
+  { staffId: "s5", year: CURRENT_YEAR, granted: 11, carryover: 0, adjustment: 0 },
+  { staffId: "s6", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
+  { staffId: "s7", year: CURRENT_YEAR, granted: 9, carryover: 0, adjustment: 0 },
 ];
 
-const t = today();
+export const initialDutyPolicy: DutyPolicy = {
+  weekendIncluded: true,
+  holidayIncluded: true,
+  autoExcludeOnLeave: true,
+  selectionDeadline: "18:00",
+};
+
+export const initialDutyRotation: DutyRotationEntry[] = staffList.map((s, i) => ({
+  staffId: s.id,
+  order: i + 1,
+  active: true,
+}));
 
 export const emergencyContacts: Record<string, string> = {
   s1: "010-1234-5671",

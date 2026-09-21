@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { staffList } from "@/lib/mock-data";
-import { formatKoreanDate, getMonthMatrix, toISODate, today } from "@/lib/date";
+import { formatKoreanDate, getMonthMatrix, isWithinRange, toISODate, today } from "@/lib/date";
 import { useDuty } from "./DutyContext";
+import { useLeave } from "@/components/leave/LeaveContext";
 
 const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 const todayISO = toISODate(today());
@@ -17,8 +18,15 @@ export default function DutyManager() {
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
   const { assignments, assignDuty, clearDuty, autoAssignMonth, resetMonth } = useDuty();
+  const { requests } = useLeave();
 
   const staffById = useMemo(() => new Map(staffList.map((s) => [s.id, s])), []);
+
+  function isOnLeave(staffId: string, dateISO: string) {
+    return requests.some(
+      (r) => r.staffId === staffId && r.status === "승인" && isWithinRange(dateISO, r.startDate, r.endDate)
+    );
+  }
   const weeks = getMonthMatrix(year, month);
 
   function goToPrevMonth() {
@@ -42,7 +50,10 @@ export default function DutyManager() {
   function handleDropOnDate(dateISO: string, e: React.DragEvent) {
     e.preventDefault();
     const staffId = e.dataTransfer.getData("text/plain");
-    if (staffId) assignDuty(dateISO, staffId);
+    if (staffId) {
+      const result = assignDuty(dateISO, staffId);
+      if (!result.ok && result.error) alert(result.error);
+    }
     setDragOverDate(null);
   }
 
@@ -53,7 +64,7 @@ export default function DutyManager() {
   }
 
   function handleAutoAssign() {
-    autoAssignMonth(year, month);
+    autoAssignMonth(year, month, { isOnLeave });
   }
 
   function handleResetMonth() {
@@ -65,7 +76,11 @@ export default function DutyManager() {
 
   function handleAssignSelected() {
     if (!pendingStaffId) return;
-    assignDuty(selectedDate, pendingStaffId);
+    const result = assignDuty(selectedDate, pendingStaffId);
+    if (!result.ok && result.error) {
+      alert(result.error);
+      return;
+    }
     setPendingStaffId("");
   }
 

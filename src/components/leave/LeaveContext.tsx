@@ -1,12 +1,14 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from "react";
-import type { LeaveRequest, LeaveStatus, LeaveType, Staff } from "@/lib/types";
-import { staffList, leaveBalances, initialLeaveRequests } from "@/lib/mock-data";
+import type { LeaveGrant, LeaveRequest, LeaveStatus, LeaveType, Staff } from "@/lib/types";
+import { staffList, initialLeaveGrants, initialLeaveRequests, CURRENT_YEAR } from "@/lib/mock-data";
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
 
 const todayISO = toISODate(today());
 const CURRENT_APPROVER = "박기표";
+
+export { CURRENT_YEAR };
 
 export interface NewRequestInput {
   staffId: string;
@@ -22,6 +24,7 @@ interface LeaveContextValue {
   requests: LeaveRequest[];
   staffList: Staff[];
   staffById: Map<string, Staff>;
+  grants: LeaveGrant[];
   grantedDaysByStaff: Map<string, number>;
   usedDaysByStaff: Map<string, number>;
   todayOnLeaveCount: number;
@@ -32,20 +35,29 @@ interface LeaveContextValue {
   handleCreate: (input: NewRequestInput) => void;
   handleDelete: (id: string) => void;
   handleUpdateReason: (id: string, reason: string) => void;
+  updateGrant: (
+    staffId: string,
+    year: number,
+    patch: Partial<Pick<LeaveGrant, "granted" | "carryover" | "adjustment">>
+  ) => void;
 }
 
 const LeaveContext = createContext<LeaveContextValue | null>(null);
 
 export function LeaveProvider({ children }: { children: React.ReactNode }) {
   const [requests, setRequests] = useState<LeaveRequest[]>(initialLeaveRequests);
+  const [grants, setGrants] = useState<LeaveGrant[]>(initialLeaveGrants);
 
   const staffById = useMemo(() => new Map(staffList.map((s) => [s.id, s])), []);
 
   const grantedDaysByStaff = useMemo(() => {
     const map = new Map<string, number>();
-    for (const b of leaveBalances) map.set(b.staffId, b.grantedDays);
+    for (const g of grants) {
+      if (g.year !== CURRENT_YEAR) continue;
+      map.set(g.staffId, g.granted + g.carryover + g.adjustment);
+    }
     return map;
-  }, []);
+  }, [grants]);
 
   const usedDaysByStaff = useMemo(() => {
     const map = new Map<string, number>();
@@ -127,10 +139,30 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, reason } : r)));
   }
 
+  function updateGrant(
+    staffId: string,
+    year: number,
+    patch: Partial<Pick<LeaveGrant, "granted" | "carryover" | "adjustment">>
+  ) {
+    setGrants((prev) => {
+      const idx = prev.findIndex((g) => g.staffId === staffId && g.year === year);
+      if (idx === -1) {
+        return [
+          ...prev,
+          { staffId, year, granted: 0, carryover: 0, adjustment: 0, ...patch },
+        ];
+      }
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...patch };
+      return next;
+    });
+  }
+
   const value: LeaveContextValue = {
     requests,
     staffList,
     staffById,
+    grants,
     grantedDaysByStaff,
     usedDaysByStaff,
     todayOnLeaveCount,
@@ -141,6 +173,7 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     handleCreate,
     handleDelete,
     handleUpdateReason,
+    updateGrant,
   };
 
   return <LeaveContext.Provider value={value}>{children}</LeaveContext.Provider>;
