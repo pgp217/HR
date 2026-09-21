@@ -23,6 +23,7 @@ export default function LeaveManager() {
     handleDecision,
     handleCreate,
     handleDelete,
+    handleUpdateReason,
   } = useLeave();
 
   const todayISO = new Date().toISOString().slice(0, 10);
@@ -66,6 +67,7 @@ export default function LeaveManager() {
         staffById={staffById}
         onDecision={handleDecision}
         onDelete={handleDelete}
+        onUpdateReason={handleUpdateReason}
       />
 
       {isFormOpen && (

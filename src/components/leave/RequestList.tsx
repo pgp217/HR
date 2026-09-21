@@ -9,6 +9,7 @@ interface Props {
   staffById: Map<string, Staff>;
   onDecision: (id: string, status: LeaveStatus) => void;
   onDelete: (id: string) => void;
+  onUpdateReason: (id: string, reason: string) => void;
 }
 
 const filters: (LeaveStatus | "전체")[] = ["전체", "승인대기", "승인", "반려"];
@@ -19,8 +20,16 @@ const statusStyles: Record<LeaveStatus, string> = {
   반려: "bg-red-50 text-red-700",
 };
 
-export default function RequestList({ requests, staffById, onDecision, onDelete }: Props) {
+export default function RequestList({
+  requests,
+  staffById,
+  onDecision,
+  onDelete,
+  onUpdateReason,
+}: Props) {
   const [filter, setFilter] = useState<(typeof filters)[number]>("승인대기");
+  const [editingReasonId, setEditingReasonId] = useState<string | null>(null);
+  const [draftReason, setDraftReason] = useState("");
 
   const filtered = requests
     .filter((r) => (filter === "전체" ? true : r.status === filter))
@@ -31,6 +40,16 @@ export default function RequestList({ requests, staffById, onDecision, onDelete 
       `${staffName}님의 ${req.type} 신청(${formatKoreanDate(req.startDate)})을 삭제할까요? 이 작업은 되돌릴 수 없습니다.`
     );
     if (confirmed) onDelete(req.id);
+  }
+
+  function startEditingReason(req: LeaveRequest) {
+    setEditingReasonId(req.id);
+    setDraftReason("");
+  }
+
+  function saveReason(id: string) {
+    onUpdateReason(id, draftReason.trim() || "-");
+    setEditingReasonId(null);
   }
 
   return (
@@ -87,8 +106,45 @@ export default function RequestList({ requests, staffById, onDecision, onDelete 
                     : `${formatKoreanDate(req.startDate)} ~ ${formatKoreanDate(req.endDate)}`}
                 </td>
                 <td className="px-4 py-2.5 text-gray-700">{req.days}일</td>
-                <td className="max-w-[160px] truncate px-4 py-2.5 text-gray-500" title={req.reason}>
-                  {req.reason}
+                <td className="px-4 py-2.5 text-gray-500">
+                  {editingReasonId === req.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        autoFocus
+                        value={draftReason}
+                        onChange={(e) => setDraftReason(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveReason(req.id);
+                          if (e.key === "Escape") setEditingReasonId(null);
+                        }}
+                        placeholder="사유 입력"
+                        className="w-32 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                      />
+                      <button
+                        onClick={() => saveReason(req.id)}
+                        className="rounded bg-blue-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                      >
+                        저장
+                      </button>
+                      <button
+                        onClick={() => setEditingReasonId(null)}
+                        className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  ) : req.reason === "-" ? (
+                    <button
+                      onClick={() => startEditingReason(req)}
+                      className="rounded border border-dashed border-gray-300 px-1.5 py-0.5 text-xs text-gray-400 hover:border-blue-400 hover:text-blue-600"
+                    >
+                      사유 입력
+                    </button>
+                  ) : (
+                    <span className="block max-w-[160px] truncate" title={req.reason}>
+                      {req.reason}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-2.5 text-gray-500">{formatKoreanDate(req.requestedAt)}</td>
                 <td className="px-4 py-2.5">
