@@ -24,6 +24,8 @@ export interface LeaveRequest {
   endDate: string; // ISO date
   days: number; // 차감 일수
   reason: string;
+  handoverStaffId: string; // 업무 인수인계자
+  emergencyContact: string; // 긴급연락처
   status: LeaveStatus;
   requestedAt: string; // ISO date
   decidedAt?: string; // ISO date

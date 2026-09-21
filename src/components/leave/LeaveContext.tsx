@@ -14,6 +14,8 @@ export interface NewRequestInput {
   startDate: string;
   endDate: string;
   reason: string;
+  handoverStaffId: string;
+  emergencyContact: string;
 }
 
 interface LeaveContextValue {
@@ -109,6 +111,8 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
       endDate: input.endDate,
       days: input.type.startsWith("반차") ? 0.5 : days,
       reason: input.reason || "-",
+      handoverStaffId: input.handoverStaffId,
+      emergencyContact: input.emergencyContact,
       status: "승인대기",
       requestedAt: todayISO,
     };

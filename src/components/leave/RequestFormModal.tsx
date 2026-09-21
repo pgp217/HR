@@ -26,9 +26,17 @@ export default function RequestFormModal({
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(defaultEnd);
   const [reason, setReason] = useState("");
+  const [handoverStaffId, setHandoverStaffId] = useState("");
+  const [emergencyContact, setEmergencyContact] = useState("");
   const [error, setError] = useState("");
 
   const isHalfDay = type.startsWith("반차");
+  const handoverOptions = staffList.filter((s) => s.id !== staffId);
+
+  function handleStaffChange(nextStaffId: string) {
+    setStaffId(nextStaffId);
+    if (handoverStaffId === nextStaffId) setHandoverStaffId("");
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,7 +48,23 @@ export default function RequestFormModal({
       setError("종료일은 시작일보다 빠를 수 없습니다.");
       return;
     }
-    onSubmit({ staffId, type, startDate, endDate: isHalfDay ? startDate : endDate, reason });
+    if (!handoverStaffId) {
+      setError("업무 인수인계자를 선택해주세요.");
+      return;
+    }
+    if (!emergencyContact.trim()) {
+      setError("긴급연락처를 입력해주세요.");
+      return;
+    }
+    onSubmit({
+      staffId,
+      type,
+      startDate,
+      endDate: isHalfDay ? startDate : endDate,
+      reason,
+      handoverStaffId,
+      emergencyContact: emergencyContact.trim(),
+    });
   }
 
   return (
@@ -58,7 +82,7 @@ export default function RequestFormModal({
             <span className="text-gray-600">직원</span>
             <select
               value={staffId}
-              onChange={(e) => setStaffId(e.target.value)}
+              onChange={(e) => handleStaffChange(e.target.value)}
               className="rounded-md border border-gray-300 px-3 py-2"
             >
               {staffList.map((s) => (
@@ -115,6 +139,37 @@ export default function RequestFormModal({
               rows={2}
               placeholder="사유를 입력하세요"
               className="resize-none rounded-md border border-gray-300 px-3 py-2"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-600">
+              업무 인수인계자 <span className="text-red-500">*</span>
+            </span>
+            <select
+              value={handoverStaffId}
+              onChange={(e) => setHandoverStaffId(e.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-2"
+            >
+              <option value="">인수인계자 선택...</option>
+              {handoverOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.role})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-600">
+              긴급연락처 <span className="text-red-500">*</span>
+            </span>
+            <input
+              type="tel"
+              value={emergencyContact}
+              onChange={(e) => setEmergencyContact(e.target.value)}
+              placeholder="예: 010-0000-0000"
+              className="rounded-md border border-gray-300 px-3 py-2"
             />
           </label>
 

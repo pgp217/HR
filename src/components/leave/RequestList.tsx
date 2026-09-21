@@ -80,6 +80,7 @@ export default function RequestList({
             <th className="px-4 py-2 font-medium">기간</th>
             <th className="px-4 py-2 font-medium">일수</th>
             <th className="px-4 py-2 font-medium">사유</th>
+            <th className="px-4 py-2 font-medium">인수인계</th>
             <th className="px-4 py-2 font-medium">신청일</th>
             <th className="px-4 py-2 font-medium">상태</th>
             <th className="px-4 py-2 font-medium">관리</th>
@@ -88,7 +89,7 @@ export default function RequestList({
         <tbody>
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+              <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                 해당하는 신청 내역이 없습니다.
               </td>
             </tr>
@@ -145,6 +146,12 @@ export default function RequestList({
                       {req.reason}
                     </span>
                   )}
+                </td>
+                <td className="px-4 py-2.5 text-gray-500">
+                  <div className="text-xs">
+                    <p>{staffById.get(req.handoverStaffId)?.name ?? "-"}</p>
+                    <p className="text-gray-400">{req.emergencyContact}</p>
+                  </div>
                 </td>
                 <td className="px-4 py-2.5 text-gray-500">{formatKoreanDate(req.requestedAt)}</td>
                 <td className="px-4 py-2.5">
