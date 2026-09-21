@@ -50,7 +50,6 @@ export default function TodayPage() {
               <th className="px-4 py-2 font-medium">직원</th>
               <th className="px-4 py-2 font-medium">역할</th>
               <th className="px-4 py-2 font-medium">근무</th>
-              <th className="px-4 py-2 font-medium">점심</th>
               <th className="px-4 py-2 font-medium">당직</th>
               <th className="px-4 py-2 font-medium">휴가</th>
             </tr>
@@ -72,7 +71,6 @@ export default function TodayPage() {
                       <span className="text-gray-700">정상근무</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-gray-300">미지정</td>
                   <td className="px-4 py-2.5 text-gray-300">-</td>
                   <td className="px-4 py-2.5 text-gray-700">{onLeave ? "휴가" : "-"}</td>
                 </tr>
@@ -83,11 +81,15 @@ export default function TodayPage() {
       </div>
 
       <p className="text-sm text-gray-400">
-        점심·당직 배정 기능은 준비 중입니다. 우선{" "}
+        당직 배정은{" "}
+        <Link href="/operations/staff-schedule/duty" className="text-blue-600 underline">
+          당직 일정
+        </Link>
+        , 휴가 승인은{" "}
         <Link href="/operations/staff-schedule/leave" className="text-blue-600 underline">
           휴가·연차 관리
         </Link>
-        를 이용해주세요.
+        에서 확인해주세요.
       </p>
     </div>
   );

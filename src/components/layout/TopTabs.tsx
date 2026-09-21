@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { label: "오늘 현황", href: "/operations/staff-schedule/today" },
-  { label: "점심 일정", href: "/operations/staff-schedule/lunch" },
   { label: "당직 일정", href: "/operations/staff-schedule/duty" },
   { label: "휴가·연차", href: "/operations/staff-schedule/leave" },
   { label: "승인 관리", href: "/operations/staff-schedule/approvals" },

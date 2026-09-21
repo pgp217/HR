@@ -14,7 +14,7 @@ export default function StaffScheduleLayout({ children }: LayoutProps<"/operatio
               <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
                 <span>🗓️</span> 운영 일정
               </h1>
-              <p className="text-sm text-gray-500">점심 · 당직 · 휴가를 한 곳에서 관리합니다.</p>
+              <p className="text-sm text-gray-500">당직 · 휴가를 한 곳에서 관리합니다.</p>
             </header>
             <TopTabs />
             <main className="flex-1 overflow-y-auto bg-gray-50 p-6">{children}</main>
