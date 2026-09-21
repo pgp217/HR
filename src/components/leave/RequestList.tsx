@@ -176,13 +176,15 @@ export default function RequestList({
                         {req.decidedBy ? `${req.decidedBy} 처리` : "-"}
                       </span>
                     )}
-                    <button
-                      onClick={() => handleDeleteClick(req, staff?.name ?? "직원")}
-                      title="신청 삭제"
-                      className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
-                    >
-                      삭제
-                    </button>
+                    {req.status !== "반려" && (
+                      <button
+                        onClick={() => handleDeleteClick(req, staff?.name ?? "직원")}
+                        title="신청 삭제"
+                        className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                      >
+                        삭제
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
