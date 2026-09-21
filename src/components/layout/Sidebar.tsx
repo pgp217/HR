@@ -60,7 +60,7 @@ export default function Sidebar({ activeHref }: { activeHref?: string }) {
   return (
     <aside className="w-56 shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-4 border-b border-gray-100">
-        <p className="text-base font-bold text-gray-900">리바이어던</p>
+        <p className="text-base font-bold text-gray-900">박기표_HR프로젝트</p>
         <p className="text-xs text-gray-400">개인회생 전산</p>
       </div>
 

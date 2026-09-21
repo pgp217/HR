@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "리바이어던 | 개인회생 전산",
+  title: "박기표_HR프로젝트 | 개인회생 전산",
   description: "점심 · 당직 · 휴가를 한 곳에서 관리하는 운영 일정 시스템",
 };
 
