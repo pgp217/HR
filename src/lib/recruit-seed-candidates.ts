@@ -101,7 +101,7 @@ export const seedCandidates: Candidate[] = [
     consentMarketing: false,
     addToTalentPool: false,
     stage: "면접",
-    interviewAt: `${toISODate(t)}T14:00`,
+    interviewAt: `${toISODate(t)}T14:30`,
   },
   {
     id: "cand-seed-3",
