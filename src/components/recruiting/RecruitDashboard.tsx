@@ -234,7 +234,7 @@ export default function RecruitDashboard() {
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">지원자 목록 · 전형 관리</h3>
           <p className="text-xs text-gray-400">
-            적합도 점수 = 경력 40 + 역량 레벨 30 + 희망 직무 적합도 30
+            적합도 점수 = 경력 20 + 역량 레벨 30 + 희망 직무 적합도 50
           </p>
         </div>
         <div className="overflow-x-auto">
