@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLeave } from "@/components/leave/LeaveContext";
 import { useDuty } from "@/components/duty/DutyContext";
+import { useTrip } from "@/components/trip/TripContext";
 import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
 import { checkStaffingOnDate } from "@/lib/leave-conflict";
 
@@ -10,6 +11,7 @@ export default function TodayPage() {
   const todayISO = toISODate(today());
   const { requests, staffList, pendingCount } = useLeave();
   const { assignments } = useDuty();
+  const { records: tripRecords } = useTrip();
 
   const onLeaveToday = requests.filter(
     (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
@@ -17,6 +19,9 @@ export default function TodayPage() {
   const onLeaveStaffIds = new Set(onLeaveToday.map((r) => r.staffId));
   const dutyStaffId = assignments[todayISO];
   const staffingConflict = checkStaffingOnDate(todayISO, requests, staffList);
+
+  const todayTrips = tripRecords.filter((r) => isWithinRange(todayISO, r.startDate, r.endDate));
+  const tripByStaffId = new Map(todayTrips.map((r) => [r.staffId, r]));
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +43,7 @@ export default function TodayPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">전체 인원</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{staffList.length}명</p>
@@ -46,6 +51,10 @@ export default function TodayPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">오늘 휴가</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{onLeaveToday.length}명</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">오늘 출장·외출</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{todayTrips.length}건</p>
         </div>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm text-amber-700">휴가 승인 대기</p>
@@ -71,6 +80,7 @@ export default function TodayPage() {
               <th className="px-4 py-2 font-medium">역할</th>
               <th className="px-4 py-2 font-medium">근무</th>
               <th className="px-4 py-2 font-medium">당직</th>
+              <th className="px-4 py-2 font-medium">출장·외출</th>
               <th className="px-4 py-2 font-medium">휴가</th>
             </tr>
           </thead>
@@ -101,6 +111,22 @@ export default function TodayPage() {
                       <span className="text-gray-300">-</span>
                     )}
                   </td>
+                  <td className="px-4 py-2.5">
+                    {tripByStaffId.has(staff.id) ? (
+                      <span
+                        title={tripByStaffId.get(staff.id)?.purpose}
+                        className={`rounded px-2 py-0.5 text-xs font-medium ${
+                          tripByStaffId.get(staff.id)?.type === "출장"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {tripByStaffId.get(staff.id)?.type}
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 text-gray-700">{onLeave ? "휴가" : "-"}</td>
                 </tr>
               );
@@ -118,6 +144,10 @@ export default function TodayPage() {
         , 휴가 승인은{" "}
         <Link href="/operations/staff-schedule/leave" className="text-blue-600 underline">
           휴가·연차 관리
+        </Link>
+        , 출장·외출 등록은{" "}
+        <Link href="/operations/staff-schedule/trip" className="text-blue-600 underline">
+          출장·외출 관리
         </Link>
         에서 확인해주세요.
       </p>
