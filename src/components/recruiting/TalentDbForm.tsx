@@ -322,6 +322,8 @@ export default function TalentDbForm() {
                 selected={draft.skills}
                 onChange={(v) => set("skills", v)}
               />
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 sm:grid-cols-3">
               <RadioGroupField
                 label="엑셀 활용 수준"
                 options={EXCEL_LEVELS}
