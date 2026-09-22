@@ -5,7 +5,7 @@ const t = today();
 
 // Seed candidate ids whose interviewAt should always be re-pinned to "today"
 // on every app load, even if a browser already has an older stored copy.
-export const PINNED_TODAY_INTERVIEW_IDS = new Set(["cand-seed-2"]);
+export const PINNED_TODAY_INTERVIEW_IDS = new Set(["cand-seed-1"]);
 
 export const seedCandidates: Candidate[] = [
   {
@@ -53,7 +53,8 @@ export const seedCandidates: Candidate[] = [
     consentThirdParty: false,
     consentMarketing: false,
     addToTalentPool: false,
-    stage: "서류",
+    stage: "면접",
+    interviewAt: `${toISODate(t)}T14:30`,
   },
   {
     id: "cand-seed-2",
@@ -100,8 +101,7 @@ export const seedCandidates: Candidate[] = [
     consentThirdParty: false,
     consentMarketing: false,
     addToTalentPool: false,
-    stage: "면접",
-    interviewAt: `${toISODate(t)}T14:30`,
+    stage: "서류",
   },
   {
     id: "cand-seed-3",
