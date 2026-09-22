@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLeave } from "@/components/leave/LeaveContext";
 import { useDuty } from "@/components/duty/DutyContext";
 import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
+import { checkStaffingOnDate } from "@/lib/leave-conflict";
 
 export default function TodayPage() {
   const todayISO = toISODate(today());
@@ -15,6 +16,7 @@ export default function TodayPage() {
   );
   const onLeaveStaffIds = new Set(onLeaveToday.map((r) => r.staffId));
   const dutyStaffId = assignments[todayISO];
+  const staffingConflict = checkStaffingOnDate(todayISO, requests, staffList);
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,6 +26,17 @@ export default function TodayPage() {
           <p className="text-sm text-gray-500">직원별 오늘 근무 · 휴가 현황을 확인합니다.</p>
         </div>
       </div>
+
+      {staffingConflict.hasConflict && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-700">⚠ 오늘 최소 근무 인원 기준 위반</p>
+          <ul className="mt-1 flex flex-col gap-0.5 text-sm text-red-600">
+            {staffingConflict.messages.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
