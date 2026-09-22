@@ -6,6 +6,7 @@ import { useDuty } from "@/components/duty/DutyContext";
 import { useTrip } from "@/components/trip/TripContext";
 import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
 import { checkStaffingOnDate } from "@/lib/leave-conflict";
+import { formatLeaveTypeLabel } from "@/lib/leave-display";
 
 export default function TodayPage() {
   const todayISO = toISODate(today());
@@ -96,7 +97,7 @@ export default function TodayPage() {
                   <td className="px-4 py-2.5">
                     {onLeave ? (
                       <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        {leaveReq?.type}
+                        {leaveReq && formatLeaveTypeLabel(leaveReq.type)}
                       </span>
                     ) : (
                       <span className="text-gray-700">정상근무</span>

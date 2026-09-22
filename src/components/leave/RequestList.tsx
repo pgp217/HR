@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { LeaveRequest, LeaveStatus, Staff } from "@/lib/types";
 import { formatKoreanDate } from "@/lib/date";
+import { formatLeaveTypeLabel } from "@/lib/leave-display";
 
 interface Props {
   requests: LeaveRequest[];
@@ -101,7 +102,7 @@ export default function RequestList({
             return (
               <tr key={req.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{staff?.name ?? "-"}</td>
-                <td className="px-4 py-2.5 text-gray-700">{req.type}</td>
+                <td className="px-4 py-2.5 text-gray-700">{formatLeaveTypeLabel(req.type)}</td>
                 <td className="px-4 py-2.5 text-gray-700">
                   {sameDay
                     ? formatKoreanDate(req.startDate)
