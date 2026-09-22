@@ -57,15 +57,15 @@ export default function TodayPage() {
           <p className="text-sm text-gray-500">오늘 출장·외출</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{todayTrips.length}건</p>
         </div>
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm text-amber-700">휴가 승인 대기</p>
-          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount}건</p>
-        </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">정상 근무</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">
             {staffList.length - onLeaveToday.length}명
           </p>
+        </div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-700">휴가 승인 대기</p>
+          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount}건</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function TodayPage() {
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+            <tr className="border-b border-gray-100 text-left text-xs whitespace-nowrap text-gray-500">
               <th className="px-4 py-2 font-medium">직원</th>
               <th className="px-4 py-2 font-medium">역할</th>
               <th className="px-4 py-2 font-medium">근무</th>
