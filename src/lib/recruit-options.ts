@@ -22,11 +22,15 @@ export const EMPLOYMENT_STATUSES = ["재직중", "퇴사"];
 
 export const SALARY_NEGOTIABLE_OPTIONS = ["가능", "협의 필요", "불가"];
 
-export const CERTIFICATIONS = ["GA4 인증", "컴활", "정보처리기사", "사회조사분석사", "GTQ", "없음"];
+export const CERTIFICATIONS = [
+  "컴퓨터활용능력", "정보처리기사", "한국사능력검정", "MOS", "전산회계", "사회조사분석사", "없음",
+];
 
-export const SKILLS = ["메타 광고", "네이버 광고", "GA", "Photoshop", "Premiere", "Excel", "Notion", "스티비"];
+export const SKILLS = ["Excel", "PowerPoint", "Word", "SQL", "Notion", "Slack", "없음"];
 
 export const EXCEL_LEVELS = [1, 2, 3, 4, 5];
+
+export const ENGLISH_LEVELS = [1, 2, 3, 4, 5];
 
 export const WORK_TYPES = ["정규직", "계약직", "인턴", "프리랜서"];
 

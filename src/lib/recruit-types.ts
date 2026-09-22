@@ -36,6 +36,7 @@ export interface Candidate {
   certifications: string[];
   skills: string[];
   excelLevel: number | null;
+  englishLevel: number | null;
   workType: string;
 
   // 04 서술 및 지원 정보

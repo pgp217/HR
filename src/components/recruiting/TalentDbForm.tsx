@@ -9,6 +9,7 @@ import {
   DESIRED_ROLES,
   EDUCATION_LEVELS,
   EMPLOYMENT_STATUSES,
+  ENGLISH_LEVELS,
   EVALUATION_GRADES,
   EXCEL_LEVELS,
   EXPERIENCE_RANGES,
@@ -22,7 +23,10 @@ import {
 import { useRecruit } from "./RecruitContext";
 import { CheckboxGroupField, RadioGroupField, SelectField, TextAreaField, TextField } from "./FormFields";
 
-type Draft = Omit<CandidateInput, "excelLevel"> & { excelLevel: string };
+type Draft = Omit<CandidateInput, "excelLevel" | "englishLevel"> & {
+  excelLevel: string;
+  englishLevel: string;
+};
 
 const emptyDraft: Draft = {
   name: "",
@@ -52,6 +56,7 @@ const emptyDraft: Draft = {
   certifications: [],
   skills: [],
   excelLevel: "",
+  englishLevel: "",
   workType: "",
   mainTasks: "",
   previousExperience: "",
@@ -66,7 +71,7 @@ const emptyDraft: Draft = {
   addToTalentPool: false,
 };
 
-const TOTAL_FIELD_COUNT = 58;
+const TOTAL_FIELD_COUNT = 63;
 
 const requiredChecks: { label: string; isFilled: (d: Draft) => boolean }[] = [
   { label: "성명", isFilled: (d) => d.name.trim() !== "" },
@@ -112,8 +117,12 @@ export default function TalentDbForm() {
     }
 
     setError("");
-    const { excelLevel, ...rest } = draft;
-    addCandidate({ ...rest, excelLevel: excelLevel ? Number(excelLevel) : null });
+    const { excelLevel, englishLevel, ...rest } = draft;
+    addCandidate({
+      ...rest,
+      excelLevel: excelLevel ? Number(excelLevel) : null,
+      englishLevel: englishLevel ? Number(englishLevel) : null,
+    });
     setDraft(emptyDraft);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 2500);
@@ -318,6 +327,12 @@ export default function TalentDbForm() {
                 options={EXCEL_LEVELS}
                 value={draft.excelLevel}
                 onChange={(v) => set("excelLevel", v)}
+              />
+              <RadioGroupField
+                label="영어 회화 수준"
+                options={ENGLISH_LEVELS}
+                value={draft.englishLevel}
+                onChange={(v) => set("englishLevel", v)}
               />
               <RadioGroupField
                 label="희망 근무 형태"
