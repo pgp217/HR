@@ -18,7 +18,7 @@ export const EXPERIENCE_RANGES = [
   "신입", "1년 미만", "1~3년", "3~5년", "5~7년", "7~10년", "10년 이상",
 ];
 
-export const EMPLOYMENT_STATUSES = ["재직중", "퇴사"];
+export const EMPLOYMENT_STATUSES = ["재직중", "퇴사", "무직"];
 
 export const SALARY_NEGOTIABLE_OPTIONS = ["가능", "협의 필요", "불가"];
 
