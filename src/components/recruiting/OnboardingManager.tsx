@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { staffList } from "@/lib/mock-data";
 import { formatKoreanDate, toISODate, today } from "@/lib/date";
 import { useRecruit } from "./RecruitContext";
@@ -8,6 +8,7 @@ import { useRecruit } from "./RecruitContext";
 export default function OnboardingManager() {
   const { candidates, onboardingTasks, toggleOnboardingTask, updateOnboardingTask, ensureOnboardingTasks } =
     useRecruit();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const todayISO = toISODate(today());
   const hires = useMemo(() => candidates.filter((c) => c.stage === "합격"), [candidates]);
@@ -15,6 +16,10 @@ export default function OnboardingManager() {
   const totalTasks = onboardingTasks.filter((t) => hires.some((h) => h.id === t.candidateId));
   const totalDone = totalTasks.filter((t) => t.done).length;
   const overdueTasks = totalTasks.filter((t) => !t.done && t.dueDate < todayISO);
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,139 +53,175 @@ export default function OnboardingManager() {
           바꾸면 이곳에 체크리스트가 자동으로 생성됩니다.
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {hires.map((hire) => {
-            const tasks = onboardingTasks
-              .filter((t) => t.candidateId === hire.id)
-              .sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
-            const done = tasks.filter((t) => t.done).length;
-            const percent = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
-            const hireOverdue = tasks.filter((t) => !t.done && t.dueDate < todayISO).length;
+        <div className="rounded-lg border border-gray-200 bg-white">
+          <div className="border-b border-gray-100 px-4 py-3">
+            <h3 className="text-sm font-semibold text-gray-900">합격자 명단</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                <th className="px-4 py-2 font-medium">이름</th>
+                <th className="px-4 py-2 font-medium">부서</th>
+                <th className="px-4 py-2 font-medium">입사 가능 시기</th>
+                <th className="px-4 py-2 font-medium">진행률</th>
+                <th className="px-4 py-2 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {hires.map((hire) => {
+                const tasks = onboardingTasks
+                  .filter((t) => t.candidateId === hire.id)
+                  .sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
+                const done = tasks.filter((t) => t.done).length;
+                const percent = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
+                const hireOverdue = tasks.filter((t) => !t.done && t.dueDate < todayISO).length;
+                const isExpanded = expandedId === hire.id;
 
-            return (
-              <div key={hire.id} className="rounded-lg border border-gray-200 bg-white">
-                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {hire.name}{" "}
-                      <span className="font-normal text-gray-400">
-                        · {hire.desiredRole || "직무 미기재"}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-400">입사 가능 시기 {hire.availableStartDate || "-"}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {hireOverdue > 0 && (
-                      <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-                        지연 {hireOverdue}건
-                      </span>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
-                        <div
-                          className="h-full rounded-full bg-blue-600"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-gray-700">
-                        {done}/{tasks.length} ({percent}%)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {tasks.length === 0 ? (
-                  <div className="flex items-center justify-between px-4 py-4 text-sm text-gray-400">
-                    체크리스트가 아직 생성되지 않았습니다.
-                    <button
-                      onClick={() => ensureOnboardingTasks(hire.id)}
-                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                return (
+                  <Fragment key={hire.id}>
+                    <tr
+                      onClick={() => toggleExpand(hire.id)}
+                      className={`cursor-pointer border-b border-gray-50 last:border-0 hover:bg-gray-50 ${
+                        isExpanded ? "bg-gray-50" : ""
+                      }`}
                     >
-                      체크리스트 생성
-                    </button>
-                  </div>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
-                        <th className="px-4 py-2 font-medium">완료</th>
-                        <th className="px-4 py-2 font-medium">항목</th>
-                        <th className="px-4 py-2 font-medium">담당자</th>
-                        <th className="px-4 py-2 font-medium">기한</th>
-                        <th className="px-4 py-2 font-medium">상태</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tasks.map((task) => {
-                        const isOverdue = !task.done && task.dueDate < todayISO;
-                        return (
-                          <tr key={task.id} className="border-b border-gray-50 last:border-0">
-                            <td className="px-4 py-2.5">
-                              <input
-                                type="checkbox"
-                                checked={task.done}
-                                onChange={() => toggleOnboardingTask(task.id)}
-                              />
-                            </td>
-                            <td
-                              className={`px-4 py-2.5 ${
-                                task.done ? "text-gray-400 line-through" : "text-gray-900"
-                              }`}
-                            >
-                              {task.title}
-                            </td>
-                            <td className="px-4 py-2.5">
-                              <select
-                                value={task.assignee}
-                                onChange={(e) =>
-                                  updateOnboardingTask(task.id, { assignee: e.target.value })
-                                }
-                                className="rounded border border-gray-300 px-2 py-1 text-xs"
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        <span className="mr-1.5 inline-block w-3 text-gray-400">
+                          {isExpanded ? "▾" : "▸"}
+                        </span>
+                        {hire.name}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">{hire.desiredRole || "-"}</td>
+                      <td className="px-4 py-3 text-gray-500">{hire.availableStartDate || "-"}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+                            <div
+                              className="h-full rounded-full bg-blue-600"
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">
+                            {done}/{tasks.length} ({percent}%)
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {hireOverdue > 0 && (
+                          <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+                            지연 {hireOverdue}건
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={5} className="bg-gray-50 px-4 py-4">
+                          {tasks.length === 0 ? (
+                            <div className="flex items-center justify-between text-sm text-gray-400">
+                              체크리스트가 아직 생성되지 않았습니다.
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  ensureOnboardingTasks(hire.id);
+                                }}
+                                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
                               >
-                                {staffList.map((s) => (
-                                  <option key={s.id} value={s.name}>
-                                    {s.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </td>
-                            <td className="px-4 py-2.5 text-gray-500">
-                              <input
-                                type="date"
-                                value={task.dueDate}
-                                onChange={(e) =>
-                                  updateOnboardingTask(task.id, { dueDate: e.target.value })
-                                }
-                                className="rounded border border-gray-300 px-2 py-1 text-xs"
-                              />
-                              <span className="ml-2 text-xs text-gray-400">
-                                {formatKoreanDate(task.dueDate)}
-                              </span>
-                            </td>
-                            <td className="px-4 py-2.5">
-                              {task.done ? (
-                                <span className="rounded bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                                  완료
-                                </span>
-                              ) : isOverdue ? (
-                                <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-                                  지연
-                                </span>
-                              ) : (
-                                <span className="rounded bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500">
-                                  예정
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            );
-          })}
+                                체크리스트 생성
+                              </button>
+                            </div>
+                          ) : (
+                            <table className="w-full overflow-hidden rounded-md bg-white text-sm">
+                              <thead>
+                                <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                                  <th className="px-3 py-2 font-medium">완료</th>
+                                  <th className="px-3 py-2 font-medium">항목</th>
+                                  <th className="px-3 py-2 font-medium">담당자</th>
+                                  <th className="px-3 py-2 font-medium">기한</th>
+                                  <th className="px-3 py-2 font-medium">상태</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {tasks.map((task) => {
+                                  const isOverdue = !task.done && task.dueDate < todayISO;
+                                  return (
+                                    <tr
+                                      key={task.id}
+                                      className="border-b border-gray-50 last:border-0"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <td className="px-3 py-2.5">
+                                        <input
+                                          type="checkbox"
+                                          checked={task.done}
+                                          onChange={() => toggleOnboardingTask(task.id)}
+                                        />
+                                      </td>
+                                      <td
+                                        className={`px-3 py-2.5 ${
+                                          task.done ? "text-gray-400 line-through" : "text-gray-900"
+                                        }`}
+                                      >
+                                        {task.title}
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        <select
+                                          value={task.assignee}
+                                          onChange={(e) =>
+                                            updateOnboardingTask(task.id, { assignee: e.target.value })
+                                          }
+                                          className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                        >
+                                          {staffList.map((s) => (
+                                            <option key={s.id} value={s.name}>
+                                              {s.name}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </td>
+                                      <td className="px-3 py-2.5 text-gray-500">
+                                        <input
+                                          type="date"
+                                          value={task.dueDate}
+                                          onChange={(e) =>
+                                            updateOnboardingTask(task.id, { dueDate: e.target.value })
+                                          }
+                                          className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                        />
+                                        <span className="ml-2 text-xs text-gray-400">
+                                          {formatKoreanDate(task.dueDate)}
+                                        </span>
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        {task.done ? (
+                                          <span className="rounded bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                                            완료
+                                          </span>
+                                        ) : isOverdue ? (
+                                          <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+                                            지연
+                                          </span>
+                                        ) : (
+                                          <span className="rounded bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500">
+                                            예정
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
