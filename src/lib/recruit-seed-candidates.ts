@@ -37,7 +37,7 @@ export const seedCandidates: Candidate[] = [
     previousSalary: "",
     certifications: ["컴퓨터활용능력"],
     skills: ["Excel", "PowerPoint", "Notion"],
-    excelLevel: 3,
+    aiLevel: 3,
     englishLevel: null,
     workType: "정규직",
     mainTasks:
@@ -84,7 +84,7 @@ export const seedCandidates: Candidate[] = [
     previousSalary: "4,200만원",
     certifications: ["정보처리기사", "사회조사분석사"],
     skills: ["Excel", "SQL", "Notion", "Slack"],
-    excelLevel: 4,
+    aiLevel: 4,
     englishLevel: null,
     workType: "정규직",
     mainTasks:
@@ -132,7 +132,7 @@ export const seedCandidates: Candidate[] = [
     previousSalary: "6,800만원",
     certifications: ["없음"],
     skills: ["Excel", "PowerPoint", "Notion"],
-    excelLevel: 5,
+    aiLevel: 5,
     englishLevel: null,
     workType: "정규직",
     mainTasks:

@@ -4,8 +4,8 @@ import { EXPERIENCE_RANGES, EMPLOYMENT_STATUSES } from "./recruit-options";
 // 지원자 적합도 점수 (0~100). 세 축으로 나눠 합산한다:
 //   경력(20) + 역량 레벨(30) + 희망 직무 적합도(50)
 // 자격증/보유 스킬은 직무마다 유효성이 크게 갈려 정량화가 애매하다고 판단해
-// 의도적으로 제외했다 — 대신 실무에서 비교적 명확한 기준(연차, 어학/엑셀
-// 레벨, 현재 채용 공고와의 매칭)만 사용한다. 경력보다 "지금 채용 중인
+// 의도적으로 제외했다 — 대신 실무에서 비교적 명확한 기준(연차, 어학/AI
+// 활용 레벨, 현재 채용 공고와의 매칭)만 사용한다. 경력보다 "지금 채용 중인
 // 자리와 얼마나 맞는가"를 훨씬 더 중요하게 본다.
 
 const EXPERIENCE_SCORES: Record<(typeof EXPERIENCE_RANGES)[number], number> = {
@@ -29,7 +29,7 @@ const AVAILABILITY_SCORES: Record<(typeof EMPLOYMENT_STATUSES)[number], number> 
 
 const MAX_EXPERIENCE_SCORE = 15;
 const MAX_AVAILABILITY_SCORE = 5;
-const MAX_SKILL_LEVEL_SCORE = 15; // 어학, 엑셀 각각
+const MAX_SKILL_LEVEL_SCORE = 15; // 어학, AI 활용 각각
 const MAX_ROLE_MATCH_SCORE = 50;
 const CLOSED_ROLE_MATCH_SCORE = 25; // 마감된 공고와만 일치
 const NO_ROLE_MATCH_SCORE = 5; // 관련 공고 자체가 없음 — 기본점
@@ -38,7 +38,7 @@ export interface FitScoreBreakdown {
   experience: number; // 0~15
   availability: number; // 0~5
   english: number; // 0~15
-  excel: number; // 0~15
+  ai: number; // 0~15
   roleMatch: number; // 0~50
   total: number; // 0~100
 }
@@ -55,16 +55,16 @@ export function computeFitScore(candidate: Candidate, postings: JobPosting[]): F
   const experience = EXPERIENCE_SCORES[candidate.totalExperience as never] ?? 0;
   const availability = AVAILABILITY_SCORES[candidate.employmentStatus as never] ?? 0;
   const english = Math.round(((candidate.englishLevel ?? 0) / 5) * MAX_SKILL_LEVEL_SCORE);
-  const excel = Math.round(((candidate.excelLevel ?? 0) / 5) * MAX_SKILL_LEVEL_SCORE);
+  const ai = Math.round(((candidate.aiLevel ?? 0) / 5) * MAX_SKILL_LEVEL_SCORE);
   const roleMatch = roleMatchScore(candidate.desiredRole, postings);
 
   return {
     experience,
     availability,
     english,
-    excel,
+    ai,
     roleMatch,
-    total: experience + availability + english + excel + roleMatch,
+    total: experience + availability + english + ai + roleMatch,
   };
 }
 
@@ -77,6 +77,6 @@ export const FIT_SCORE_MAX = {
   experience: MAX_EXPERIENCE_SCORE,
   availability: MAX_AVAILABILITY_SCORE,
   english: MAX_SKILL_LEVEL_SCORE,
-  excel: MAX_SKILL_LEVEL_SCORE,
+  ai: MAX_SKILL_LEVEL_SCORE,
   roleMatch: MAX_ROLE_MATCH_SCORE,
 };

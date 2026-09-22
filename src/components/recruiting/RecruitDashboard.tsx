@@ -312,7 +312,7 @@ export default function RecruitDashboard() {
                 </td>
                 <td className="px-4 py-2.5">
                   <span
-                    title={`경력 ${score.experience}/${FIT_SCORE_MAX.experience} · 즉시투입 ${score.availability}/${FIT_SCORE_MAX.availability} · 어학 ${score.english}/${FIT_SCORE_MAX.english} · 엑셀 ${score.excel}/${FIT_SCORE_MAX.excel} · 직무매칭 ${score.roleMatch}/${FIT_SCORE_MAX.roleMatch}`}
+                    title={`경력 ${score.experience}/${FIT_SCORE_MAX.experience} · 즉시투입 ${score.availability}/${FIT_SCORE_MAX.availability} · 어학 ${score.english}/${FIT_SCORE_MAX.english} · AI 활용 ${score.ai}/${FIT_SCORE_MAX.ai} · 직무매칭 ${score.roleMatch}/${FIT_SCORE_MAX.roleMatch}`}
                     className={`inline-block cursor-help rounded px-2 py-0.5 text-xs font-semibold ${fitScoreStyle(score.total)}`}
                   >
                     {score.total}점

@@ -28,7 +28,7 @@ export const CERTIFICATIONS = [
 
 export const SKILLS = ["Excel", "PowerPoint", "Word", "SQL", "Notion", "Slack", "없음"];
 
-export const EXCEL_LEVELS = [1, 2, 3, 4, 5];
+export const AI_LEVELS = [1, 2, 3, 4, 5];
 
 export const ENGLISH_LEVELS = [1, 2, 3, 4, 5];
 

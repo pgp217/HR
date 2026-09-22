@@ -11,7 +11,7 @@ import {
   EMPLOYMENT_STATUSES,
   ENGLISH_LEVELS,
   EVALUATION_GRADES,
-  EXCEL_LEVELS,
+  AI_LEVELS,
   EXPERIENCE_RANGES,
   MILITARY_STATUSES,
   REGIONS,
@@ -23,8 +23,8 @@ import {
 import { useRecruit } from "./RecruitContext";
 import { CheckboxGroupField, RadioGroupField, SelectField, TextAreaField, TextField } from "./FormFields";
 
-type Draft = Omit<CandidateInput, "excelLevel" | "englishLevel"> & {
-  excelLevel: string;
+type Draft = Omit<CandidateInput, "aiLevel" | "englishLevel"> & {
+  aiLevel: string;
   englishLevel: string;
 };
 
@@ -55,7 +55,7 @@ const emptyDraft: Draft = {
   previousSalary: "",
   certifications: [],
   skills: [],
-  excelLevel: "",
+  aiLevel: "",
   englishLevel: "",
   workType: "",
   mainTasks: "",
@@ -117,10 +117,10 @@ export default function TalentDbForm() {
     }
 
     setError("");
-    const { excelLevel, englishLevel, ...rest } = draft;
+    const { aiLevel, englishLevel, ...rest } = draft;
     addCandidate({
       ...rest,
-      excelLevel: excelLevel ? Number(excelLevel) : null,
+      aiLevel: aiLevel ? Number(aiLevel) : null,
       englishLevel: englishLevel ? Number(englishLevel) : null,
     });
     setDraft(emptyDraft);
@@ -325,10 +325,10 @@ export default function TalentDbForm() {
             </div>
             <div className="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 sm:grid-cols-3">
               <RadioGroupField
-                label="엑셀 활용 수준"
-                options={EXCEL_LEVELS}
-                value={draft.excelLevel}
-                onChange={(v) => set("excelLevel", v)}
+                label="AI 활용 수준"
+                options={AI_LEVELS}
+                value={draft.aiLevel}
+                onChange={(v) => set("aiLevel", v)}
               />
               <RadioGroupField
                 label="영어 회화 수준"

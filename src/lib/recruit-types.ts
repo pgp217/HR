@@ -35,7 +35,7 @@ export interface Candidate {
   // 03 자격 · 스킬 · 평가
   certifications: string[];
   skills: string[];
-  excelLevel: number | null;
+  aiLevel: number | null;
   englishLevel: number | null;
   workType: string;
 
