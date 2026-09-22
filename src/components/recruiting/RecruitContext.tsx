@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { Candidate, CandidateInput, JobPosting, RecruitStage } from "@/lib/recruit-types";
 import { jobPostings } from "@/lib/recruit-postings";
+import { seedCandidates } from "@/lib/recruit-seed-candidates";
 import { readLocalStorage, writeLocalStorage } from "@/lib/storage";
 
 const STORAGE_KEY = "hr-recruit-candidates";
@@ -25,7 +26,7 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   // one-time sync from a browser-only store, not a derived-state loop.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCandidates(readLocalStorage<Candidate[]>(STORAGE_KEY, []));
+    setCandidates(readLocalStorage<Candidate[]>(STORAGE_KEY, seedCandidates));
     setHydrated(true);
   }, []);
 
