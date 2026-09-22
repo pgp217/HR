@@ -50,6 +50,7 @@ export default function TodayPage() {
         <div className="border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">직원별 오늘 운영 상태</h3>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
@@ -93,6 +94,7 @@ export default function TodayPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <p className="text-sm text-gray-400">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface NavItem {
   label: string;
@@ -34,21 +35,10 @@ const navGroups: NavGroup[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <aside className="w-56 shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-y-auto">
-      <div className="px-4 py-4 border-b border-gray-100">
-        <p className="text-base font-bold text-gray-900">박기표_HR프로젝트</p>
-        <p className="text-xs text-gray-400">HR 관리 시스템</p>
-      </div>
-
-      <div className="px-3 py-3">
-        <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1.5 text-sm text-gray-400">
-          <span>검색</span>
-          <span className="ml-auto text-xs">⌘K</span>
-        </div>
-      </div>
-
+  function renderNav(onNavigate?: () => void) {
+    return (
       <nav className="flex-1 px-2 pb-6 text-sm">
         {navGroups.map((group, gi) => (
           <div key={gi} className="mb-4">
@@ -63,6 +53,7 @@ export default function Sidebar() {
                   <li key={item.label}>
                     <Link
                       href={item.href ?? "#"}
+                      onClick={onNavigate}
                       className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
                         isActive
                           ? "bg-blue-50 text-blue-700 font-medium"
@@ -79,6 +70,64 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-    </aside>
+    );
+  }
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="메뉴 열기"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100"
+        >
+          ☰
+        </button>
+        <p className="text-sm font-bold text-gray-900">박기표_HR프로젝트</p>
+      </div>
+
+      {/* Desktop static sidebar */}
+      <aside className="hidden w-56 shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white lg:flex">
+        <div className="border-b border-gray-100 px-4 py-4">
+          <p className="text-base font-bold text-gray-900">박기표_HR프로젝트</p>
+          <p className="text-xs text-gray-400">HR 관리 시스템</p>
+        </div>
+        <div className="px-3 py-3">
+          <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1.5 text-sm text-gray-400">
+            <span>검색</span>
+            <span className="ml-auto text-xs">⌘K</span>
+          </div>
+        </div>
+        {renderNav()}
+      </aside>
+
+      {/* Mobile off-canvas drawer */}
+      {open && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col overflow-y-auto bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+              <div>
+                <p className="text-base font-bold text-gray-900">박기표_HR프로젝트</p>
+                <p className="text-xs text-gray-400">HR 관리 시스템</p>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="메뉴 닫기"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+            {renderNav(() => setOpen(false))}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

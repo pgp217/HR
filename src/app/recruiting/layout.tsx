@@ -5,10 +5,10 @@ import { RecruitProvider } from "@/components/recruiting/RecruitContext";
 export default function RecruitingLayout({ children }: LayoutProps<"/recruiting">) {
   return (
     <RecruitProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full flex-col lg:flex-row">
         <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <header className="border-b border-gray-200 bg-white px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <header className="border-b border-gray-200 bg-white px-4 py-4 sm:px-6">
             <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
               <span>🧑‍💼</span> 채용
             </h1>
@@ -17,7 +17,7 @@ export default function RecruitingLayout({ children }: LayoutProps<"/recruiting"
             </p>
           </header>
           <RecruitTopTabs />
-          <main className="flex-1 overflow-y-auto bg-gray-50 p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">{children}</main>
         </div>
       </div>
     </RecruitProvider>

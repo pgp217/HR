@@ -72,6 +72,7 @@ export default function RequestList({
           ))}
         </div>
       </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
@@ -199,6 +200,7 @@ export default function RequestList({
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

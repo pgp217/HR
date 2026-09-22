@@ -13,8 +13,8 @@ export default function RecruitTopTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="border-b border-gray-200 bg-white px-6">
-      <nav className="flex gap-6">
+    <div className="overflow-x-auto border-b border-gray-200 bg-white px-4 sm:px-6">
+      <nav className="flex gap-6 whitespace-nowrap">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
           return (

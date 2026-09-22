@@ -214,6 +214,7 @@ export default function RecruitDashboard() {
         <div className="border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">지원자 목록 · 전형 관리</h3>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
@@ -270,6 +271,7 @@ export default function RecruitDashboard() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
