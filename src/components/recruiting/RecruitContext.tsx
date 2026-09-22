@@ -24,9 +24,16 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   // Read from localStorage only after mount so the server-rendered HTML and
   // the first client render match (avoids hydration mismatches). This is a
   // one-time sync from a browser-only store, not a derived-state loop.
+  //
+  // Seed candidates are merged in by id rather than only used as a fallback,
+  // so they still show up even in a browser that already has other
+  // locally-registered candidates saved.
   useEffect(() => {
+    const stored = readLocalStorage<Candidate[]>(STORAGE_KEY, []);
+    const storedIds = new Set(stored.map((c) => c.id));
+    const missingSeeds = seedCandidates.filter((c) => !storedIds.has(c.id));
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCandidates(readLocalStorage<Candidate[]>(STORAGE_KEY, seedCandidates));
+    setCandidates([...stored, ...missingSeeds]);
     setHydrated(true);
   }, []);
 
