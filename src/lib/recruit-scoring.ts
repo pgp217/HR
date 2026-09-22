@@ -1,0 +1,74 @@
+import type { Candidate, JobPosting } from "./recruit-types";
+import { EXPERIENCE_RANGES, EMPLOYMENT_STATUSES } from "./recruit-options";
+
+// 지원자 적합도 점수 (0~100). 세 축으로 나눠 합산한다:
+//   경력(40) + 역량 레벨(30) + 희망 직무 적합도(30)
+// 자격증/보유 스킬은 직무마다 유효성이 크게 갈려 정량화가 애매하다고 판단해
+// 의도적으로 제외했다 — 대신 실무에서 비교적 명확한 기준(연차, 어학/엑셀
+// 레벨, 현재 채용 공고와의 매칭)만 사용한다.
+
+const EXPERIENCE_SCORES: Record<(typeof EXPERIENCE_RANGES)[number], number> = {
+  "신입": 10,
+  "1년 미만": 14,
+  "1~3년": 20,
+  "3~5년": 26,
+  "5~7년": 31,
+  "7~10년": 34,
+  "10년 이상": 35,
+};
+
+// 즉시 투입 가능성: 무직/퇴사 상태는 별도 조율 없이 바로 입사 가능하다고 보고
+// 소폭의 가산점을 준다. 재직중이라고 감점하는 게 아니라, 즉시 가능한 쪽에
+// "추가"로 점수를 주는 방식이라 재직중인 지원자도 최저점(2점)은 보장된다.
+const AVAILABILITY_SCORES: Record<(typeof EMPLOYMENT_STATUSES)[number], number> = {
+  "재직중": 2,
+  "퇴사": 4,
+  "무직": 5,
+};
+
+const MAX_EXPERIENCE_SCORE = 35;
+const MAX_AVAILABILITY_SCORE = 5;
+const MAX_SKILL_LEVEL_SCORE = 15; // 어학, 엑셀 각각
+const MAX_ROLE_MATCH_SCORE = 30;
+
+export interface FitScoreBreakdown {
+  experience: number; // 0~35
+  availability: number; // 0~5
+  english: number; // 0~15
+  excel: number; // 0~15
+  roleMatch: number; // 0~30
+  total: number; // 0~100
+}
+
+function roleMatchScore(desiredRole: string, postings: JobPosting[]): number {
+  if (!desiredRole) return 5;
+  const matches = postings.filter((p) => p.role === desiredRole);
+  if (matches.length === 0) return 5; // 관련 공고 자체가 없음 — 기본점
+  if (matches.some((p) => p.status === "모집중")) return MAX_ROLE_MATCH_SCORE; // 현재 모집중인 공고와 일치
+  return 15; // 과거/마감된 공고와만 일치
+}
+
+export function computeFitScore(candidate: Candidate, postings: JobPosting[]): FitScoreBreakdown {
+  const experience = EXPERIENCE_SCORES[candidate.totalExperience as never] ?? 0;
+  const availability = AVAILABILITY_SCORES[candidate.employmentStatus as never] ?? 0;
+  const english = Math.round(((candidate.englishLevel ?? 0) / 5) * MAX_SKILL_LEVEL_SCORE);
+  const excel = Math.round(((candidate.excelLevel ?? 0) / 5) * MAX_SKILL_LEVEL_SCORE);
+  const roleMatch = roleMatchScore(candidate.desiredRole, postings);
+
+  return {
+    experience,
+    availability,
+    english,
+    excel,
+    roleMatch,
+    total: experience + availability + english + excel + roleMatch,
+  };
+}
+
+export const FIT_SCORE_MAX = {
+  experience: MAX_EXPERIENCE_SCORE,
+  availability: MAX_AVAILABILITY_SCORE,
+  english: MAX_SKILL_LEVEL_SCORE,
+  excel: MAX_SKILL_LEVEL_SCORE,
+  roleMatch: MAX_ROLE_MATCH_SCORE,
+};

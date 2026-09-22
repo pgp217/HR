@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRecruit } from "./RecruitContext";
 import { DESIRED_ROLES } from "@/lib/recruit-options";
 import type { RecruitStage } from "@/lib/recruit-types";
 import { toISODate, today } from "@/lib/date";
+import { computeFitScore, FIT_SCORE_MAX } from "@/lib/recruit-scoring";
 
 const STAGES: RecruitStage[] = ["서류", "면접", "최종", "합격", "불합격"];
 
@@ -29,8 +30,15 @@ function BarRow({ label, count, max }: { label: string; count: number; max: numb
   );
 }
 
+function fitScoreStyle(score: number) {
+  if (score >= 80) return "bg-green-50 text-green-700";
+  if (score >= 60) return "bg-blue-50 text-blue-700";
+  return "bg-gray-100 text-gray-600";
+}
+
 export default function RecruitDashboard() {
   const { candidates, jobPostings, updateCandidateStage } = useRecruit();
+  const [sortByScore, setSortByScore] = useState<"desc" | "asc" | null>(null);
 
   const todayISO = toISODate(today());
   const weekAgoISO = toISODate(new Date(today().getTime() - 7 * 24 * 60 * 60 * 1000));
@@ -83,6 +91,18 @@ export default function RecruitDashboard() {
     () => candidates.filter((c) => c.createdAt.slice(0, 10) >= weekAgoISO).length,
     [candidates, weekAgoISO]
   );
+
+  const scoredCandidates = useMemo(() => {
+    const scored = candidates.map((c) => ({ candidate: c, score: computeFitScore(c, jobPostings) }));
+    if (!sortByScore) return scored;
+    return [...scored].sort((a, b) =>
+      sortByScore === "desc" ? b.score.total - a.score.total : a.score.total - b.score.total
+    );
+  }, [candidates, jobPostings, sortByScore]);
+
+  function toggleScoreSort() {
+    setSortByScore((prev) => (prev === "desc" ? "asc" : prev === "asc" ? null : "desc"));
+  }
 
   const maxStageCount = Math.max(1, ...Array.from(stageCounts.values()));
   const maxPostingCount = Math.max(1, ...Array.from(postingCounts.values()));
@@ -211,8 +231,11 @@ export default function RecruitDashboard() {
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">지원자 목록 · 전형 관리</h3>
+          <p className="text-xs text-gray-400">
+            적합도 점수 = 경력 40 + 역량 레벨 30 + 희망 직무 적합도 30
+          </p>
         </div>
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -223,17 +246,28 @@ export default function RecruitDashboard() {
               <th className="px-4 py-2 font-medium">지원일</th>
               <th className="px-4 py-2 font-medium">전형 단계</th>
               <th className="px-4 py-2 font-medium">면접 일시</th>
+              <th className="px-4 py-2 font-medium">
+                <button
+                  onClick={toggleScoreSort}
+                  className="flex items-center gap-1 font-medium text-gray-500 hover:text-gray-800"
+                >
+                  적합도 점수
+                  <span className="text-gray-300">
+                    {sortByScore === "desc" ? "▼" : sortByScore === "asc" ? "▲" : "↕"}
+                  </span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {candidates.length === 0 && (
+            {scoredCandidates.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                   등록된 지원자가 없습니다.
                 </td>
               </tr>
             )}
-            {candidates.map((c) => (
+            {scoredCandidates.map(({ candidate: c, score }) => (
               <tr key={c.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{c.name}</td>
                 <td className="px-4 py-2.5 text-gray-700">{c.desiredRole || "-"}</td>
@@ -266,6 +300,14 @@ export default function RecruitDashboard() {
                   ) : (
                     <span className="text-gray-300">-</span>
                   )}
+                </td>
+                <td className="px-4 py-2.5">
+                  <span
+                    title={`경력 ${score.experience}/${FIT_SCORE_MAX.experience} · 즉시투입 ${score.availability}/${FIT_SCORE_MAX.availability} · 어학 ${score.english}/${FIT_SCORE_MAX.english} · 엑셀 ${score.excel}/${FIT_SCORE_MAX.excel} · 직무매칭 ${score.roleMatch}/${FIT_SCORE_MAX.roleMatch}`}
+                    className={`inline-block cursor-help rounded px-2 py-0.5 text-xs font-semibold ${fitScoreStyle(score.total)}`}
+                  >
+                    {score.total}점
+                  </span>
                 </td>
               </tr>
             ))}
