@@ -70,3 +70,12 @@ export interface JobPosting {
   deadline: string; // ISO date
   status: PostingStatus;
 }
+
+export interface OnboardingTask {
+  id: string;
+  candidateId: string;
+  title: string;
+  assignee: string;
+  dueDate: string; // ISO date
+  done: boolean;
+}
