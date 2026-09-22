@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLeave } from "@/components/leave/LeaveContext";
 import { useDuty } from "@/components/duty/DutyContext";
 import { useTrip } from "@/components/trip/TripContext";
 import { formatKoreanDate, isWithinRange, toISODate, today } from "@/lib/date";
 import { checkStaffingOnDate } from "@/lib/leave-conflict";
-import { formatLeaveTypeLabel } from "@/lib/leave-display";
+import { formatLeaveTypeLabel, HALF_DAY_TIME_RANGES, isNowWithin } from "@/lib/leave-display";
 
 export default function TodayPage() {
   const todayISO = toISODate(today());
@@ -23,6 +24,44 @@ export default function TodayPage() {
 
   const todayTrips = tripRecords.filter((r) => isWithinRange(todayISO, r.startDate, r.endDate));
   const tripByStaffId = new Map(todayTrips.map((r) => [r.staffId, r]));
+
+  // "현재 인원": 오늘 일정이 아니라 지금 이 순간 자리에 있는지를 본다.
+  // 반차/외출은 지정된 시간대에만 부재로 치고, 종일 휴가·출장은 하루
+  // 내내 부재로 친다. 현재 시각을 쓰므로 서버 렌더링 시점과 브라우저
+  // 시점이 어긋나 하이드레이션 불일치가 나지 않도록 마운트 이후에만
+  // 계산한다.
+  const [currentPresentCount, setCurrentPresentCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    const nowHHmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const leaveToday = requests.filter(
+      (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
+    );
+    const tripToday = new Map(
+      tripRecords.filter((r) => isWithinRange(todayISO, r.startDate, r.endDate)).map((r) => [r.staffId, r])
+    );
+
+    const currentlyAbsentIds = new Set<string>();
+    for (const staff of staffList) {
+      const leaveReq = leaveToday.find((r) => r.staffId === staff.id);
+      if (leaveReq) {
+        const halfRange = HALF_DAY_TIME_RANGES[leaveReq.type];
+        if (halfRange ? isNowWithin(nowHHmm, halfRange.start, halfRange.end) : true) {
+          currentlyAbsentIds.add(staff.id);
+        }
+      }
+      const trip = tripToday.get(staff.id);
+      if (trip) {
+        const stillAway =
+          trip.type === "출장" ||
+          (trip.startTime && trip.endTime && isNowWithin(nowHHmm, trip.startTime, trip.endTime));
+        if (stillAway) currentlyAbsentIds.add(staff.id);
+      }
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPresentCount(staffList.length - currentlyAbsentIds.size);
+  }, [staffList, requests, tripRecords, todayISO]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,7 +83,13 @@ export default function TodayPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+          <p className="text-sm text-green-700">🟢 현재 인원</p>
+          <p className="mt-2 text-2xl font-bold text-green-700">
+            {currentPresentCount === null ? "-" : `${currentPresentCount}명`}
+          </p>
+        </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">전체 인원</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{staffList.length}명</p>
