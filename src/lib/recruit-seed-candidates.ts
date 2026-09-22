@@ -1,7 +1,11 @@
 import type { Candidate } from "./recruit-types";
-import { addDays, today } from "./date";
+import { addDays, toISODate, today } from "./date";
 
 const t = today();
+
+// Seed candidate ids whose interviewAt should always be re-pinned to "today"
+// on every app load, even if a browser already has an older stored copy.
+export const PINNED_TODAY_INTERVIEW_IDS = new Set(["cand-seed-2"]);
 
 export const seedCandidates: Candidate[] = [
   {
@@ -97,6 +101,7 @@ export const seedCandidates: Candidate[] = [
     consentMarketing: false,
     addToTalentPool: false,
     stage: "면접",
+    interviewAt: `${toISODate(t)}T14:00`,
   },
   {
     id: "cand-seed-3",
