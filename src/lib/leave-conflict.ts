@@ -4,14 +4,17 @@ import { isWithinRange, toISODate, formatKoreanDate } from "./date";
 // 같은 날 여러 명이 휴가를 신청해 인원이 몰릴 때를 대비한 정책. 두 기준을
 // 함께 적용하고, 하나라도 걸리면 승인 전에 경고만 한다 — 강제로 승인을
 // 막지는 않고, 최종 판단은 승인권자가 직접 하도록 남겨둔다.
-//   1) 역할별 최소 근무 인원: 같은 역할 그룹에서 남는 인원이 기준 밑으로
-//      내려가면 경고 (담당자 5명 중 최소 3명, 서무 2명 중 최소 1명 유지)
+//   1) 역할별 최소 근무 인원 비율: 같은 역할 그룹 인원 대비 남는 인원의
+//      비율이 기준 밑으로 내려가면 경고 (담당자는 인원의 40% 이상,
+//      서무는 인원의 30% 이상 근무 유지). 인원이 늘거나 줄어도 비율
+//      기준이라 자동으로 따라간다 — 최소 인원 수는 올림(ceil) 처리해서
+//      "비율 이상"을 항상 만족시킨다.
 //   2) 전체 인원 대비 동시 휴가 비율: 역할 구분 없이 전체 직원 중 동시
 //      휴가자가 기준 비율을 넘으면 경고 (30%)
 
-export const MIN_STAFF_PER_ROLE: Record<StaffRole, number> = {
-  담당자: 3,
-  서무: 1,
+export const ROLE_MIN_STAFF_RATIO: Record<StaffRole, number> = {
+  담당자: 0.4,
+  서무: 0.3,
 };
 
 export const MAX_CONCURRENT_LEAVE_RATIO = 0.3;
@@ -67,10 +70,12 @@ export function checkLeaveConflict(
     for (const [role, total] of roleTotals) {
       const onLeave = roleOnLeave.get(role) ?? 0;
       const remaining = total - onLeave;
-      const min = MIN_STAFF_PER_ROLE[role] ?? 0;
+      const ratio = ROLE_MIN_STAFF_RATIO[role] ?? 0;
+      const min = Math.ceil(ratio * total);
       if (remaining < min) {
         messages.push(
-          `${formatKoreanDate(dateISO)}: ${role} 근무 인원 ${remaining}명 (최소 ${min}명 필요)`
+          `${formatKoreanDate(dateISO)}: ${role} 근무 인원 ${remaining}명 ` +
+            `(최소 ${min}명, 인원의 ${Math.round(ratio * 100)}% 필요)`
         );
       }
     }
