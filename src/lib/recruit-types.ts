@@ -56,6 +56,17 @@ export interface Candidate {
 
   // 채용 대시보드/온보딩 연계용
   stage: RecruitStage;
+  interviewAt?: string; // ISO datetime, 면접 일정
 }
 
-export type CandidateInput = Omit<Candidate, "id" | "createdAt" | "stage">;
+export type CandidateInput = Omit<Candidate, "id" | "createdAt" | "stage" | "interviewAt">;
+
+export type PostingStatus = "모집중" | "마감";
+
+export interface JobPosting {
+  id: string;
+  title: string;
+  role: string; // desiredRole과 매칭되는 직무
+  deadline: string; // ISO date
+  status: PostingStatus;
+}

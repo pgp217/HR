@@ -1,14 +1,17 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import type { Candidate, CandidateInput } from "@/lib/recruit-types";
+import type { Candidate, CandidateInput, JobPosting, RecruitStage } from "@/lib/recruit-types";
+import { jobPostings } from "@/lib/recruit-postings";
 import { readLocalStorage, writeLocalStorage } from "@/lib/storage";
 
 const STORAGE_KEY = "hr-recruit-candidates";
 
 interface RecruitContextValue {
   candidates: Candidate[];
+  jobPostings: JobPosting[];
   addCandidate: (input: CandidateInput) => void;
+  updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
 }
 
 const RecruitContext = createContext<RecruitContextValue | null>(null);
@@ -40,7 +43,18 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     setCandidates((prev) => [candidate, ...prev]);
   }
 
-  const value: RecruitContextValue = { candidates, addCandidate };
+  function updateCandidateStage(id: string, stage: RecruitStage, interviewAt?: string) {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, stage, interviewAt: interviewAt ?? c.interviewAt } : c))
+    );
+  }
+
+  const value: RecruitContextValue = {
+    candidates,
+    jobPostings,
+    addCandidate,
+    updateCandidateStage,
+  };
 
   return <RecruitContext.Provider value={value}>{children}</RecruitContext.Provider>;
 }
