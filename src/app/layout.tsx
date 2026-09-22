@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "박기표_HR프로젝트 | 개인회생 전산",
+  title: "박기표_HR프로젝트 | HR 전산",
   description: "당직 · 휴가를 한 곳에서 관리하는 운영 일정 시스템",
   other: {
     google: "notranslate",
