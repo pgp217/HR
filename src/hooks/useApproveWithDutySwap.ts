@@ -3,19 +3,35 @@
 import { useLeave } from "@/components/leave/LeaveContext";
 import { useDuty } from "@/components/duty/DutyContext";
 import { formatKoreanDate, isWithinRange } from "@/lib/date";
+import { checkLeaveConflict } from "@/lib/leave-conflict";
 import type { LeaveStatus } from "@/lib/types";
 
 /**
- * Wraps leave-request approval so that approving a leave whose staff member
- * is already duty-assigned on an overlapping date offers to swap that duty
- * to the request's designated handover person.
+ * Wraps leave-request approval so that:
+ *  - approving a request that would drop staffing below the minimum
+ *    (per-role or overall concurrent-leave ratio) warns first, but still
+ *    lets the approver proceed — the policy never hard-blocks approval.
+ *  - approving a leave whose staff member is already duty-assigned on an
+ *    overlapping date offers to swap that duty to the designated handover
+ *    person.
  */
 export function useApproveWithDutySwap() {
-  const { requests, staffById, handleDecision } = useLeave();
+  const { requests, staffList, staffById, handleDecision } = useLeave();
   const { assignments, assignDuty } = useDuty();
 
   function decide(id: string, status: LeaveStatus) {
     const req = requests.find((r) => r.id === id);
+
+    if (status === "승인" && req) {
+      const conflict = checkLeaveConflict(req, requests, staffList);
+      if (conflict.hasConflict) {
+        const proceed = window.confirm(
+          `최소 근무 인원 기준에 걸리는 날짜가 있습니다.\n\n${conflict.messages.join("\n")}\n\n그래도 승인하시겠습니까?`
+        );
+        if (!proceed) return;
+      }
+    }
+
     handleDecision(id, status);
 
     if (status !== "승인" || !req) return;
