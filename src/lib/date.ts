@@ -1,5 +1,11 @@
 export function toISODate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // Build the string from local Y/M/D components, not toISOString() (which
+  // converts to UTC first and rolls back a calendar day for any timezone
+  // ahead of UTC, e.g. KST) — this must reflect the viewer's local date.
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export function addDays(base: Date, days: number): string {
@@ -15,9 +21,13 @@ export function today(): Date {
 }
 
 export function formatKoreanDate(iso: string): string {
-  const d = new Date(iso);
-  const weekday = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()];
-  return `${d.getMonth() + 1}. ${d.getDate()}.(${weekday})`;
+  // Parse the Y/M/D parts directly instead of `new Date(iso)` — a bare
+  // "YYYY-MM-DD" string is parsed as UTC midnight by the spec, which can
+  // shift to the wrong local calendar day depending on the viewer's timezone.
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const weekday = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
+  return `${m}. ${d}.(${weekday})`;
 }
 
 export function isWithinRange(dateISO: string, startISO: string, endISO: string): boolean {
