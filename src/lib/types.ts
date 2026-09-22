@@ -50,3 +50,21 @@ export interface LeaveRequest {
   decidedAt?: string; // ISO date
   decidedBy?: string;
 }
+
+export type TripType = "출장" | "외출";
+
+// 출장·외출은 휴가와 달리 승인 절차 없이 등록 즉시 보고 완료로 처리한다
+// (실무에서도 사전 승인보다는 사후 공유 성격이 강한 항목이라 워크플로를
+// 단순하게 유지).
+export interface TripRecord {
+  id: string;
+  staffId: string;
+  type: TripType;
+  startDate: string; // ISO date
+  endDate: string; // ISO date (외출은 보통 당일이라 startDate와 동일)
+  startTime?: string; // HH:mm, 외출에서만 사용
+  endTime?: string; // HH:mm, 외출에서만 사용
+  purpose: string; // 목적지·사유
+  reachable: boolean; // 연락 가능 여부
+  requestedAt: string; // ISO date
+}

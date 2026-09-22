@@ -1,4 +1,4 @@
-import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff } from "./types";
+import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff, TripRecord } from "./types";
 import { addDays, today } from "./date";
 
 export const staffList: Staff[] = [
@@ -231,5 +231,42 @@ export const initialLeaveRequests: LeaveRequest[] = [
     requestedAt: addDays(t, -25),
     decidedAt: addDays(t, -24),
     decidedBy: "박기표",
+  },
+];
+
+export const initialTripRecords: TripRecord[] = [
+  {
+    id: "tr1",
+    staffId: "s1",
+    type: "출장",
+    startDate: addDays(t, 2),
+    endDate: addDays(t, 3),
+    purpose: "대전 협력사 미팅",
+    reachable: true,
+    requestedAt: addDays(t, 0),
+  },
+  {
+    id: "tr2",
+    staffId: "s2",
+    type: "외출",
+    startDate: addDays(t, 0),
+    endDate: addDays(t, 0),
+    startTime: "14:00",
+    endTime: "16:00",
+    purpose: "은행 업무",
+    reachable: true,
+    requestedAt: addDays(t, 0),
+  },
+  {
+    id: "tr3",
+    staffId: "s6",
+    type: "외출",
+    startDate: addDays(t, 0),
+    endDate: addDays(t, 0),
+    startTime: "10:30",
+    endTime: "11:30",
+    purpose: "병원 진료",
+    reachable: false,
+    requestedAt: addDays(t, 0),
   },
 ];

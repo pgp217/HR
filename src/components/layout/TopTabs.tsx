@@ -7,6 +7,7 @@ const tabs = [
   { label: "오늘 현황", href: "/operations/staff-schedule/today" },
   { label: "당직 일정", href: "/operations/staff-schedule/duty" },
   { label: "휴가·연차", href: "/operations/staff-schedule/leave" },
+  { label: "출장·외출", href: "/operations/staff-schedule/trip" },
   { label: "승인 관리", href: "/operations/staff-schedule/approvals" },
   { label: "설정", href: "/operations/staff-schedule/settings" },
 ];
