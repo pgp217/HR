@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface NavItem {
   label: string;
@@ -20,48 +23,23 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "고객",
+    title: "채용",
     items: [
-      { label: "상담 고객", href: "#", icon: "👤" },
-      { label: "수임 고객", href: "#", icon: "💼" },
-      { label: "부재중 관리", href: "#", icon: "✔️" },
+      { label: "인재 DB 등록", href: "/recruiting/talent-db", icon: "🗂️" },
+      { label: "채용 대시보드", href: "/recruiting/dashboard", icon: "📊" },
+      { label: "입사자 온보딩", href: "/recruiting/onboarding", icon: "🧾" },
     ],
-  },
-  {
-    title: "수금",
-    items: [
-      { label: "분납 관리", href: "#", icon: "📆" },
-      { label: "연체 관리", href: "#", icon: "📞" },
-      { label: "입금 예정", href: "#", icon: "📄" },
-      { label: "입금 매칭", href: "#", icon: "💰" },
-    ],
-  },
-  {
-    title: "사건",
-    items: [
-      { label: "사건 현황", href: "#", icon: "📁" },
-      { label: "사건 부서", href: "#", icon: "📝" },
-    ],
-  },
-  {
-    title: "성과",
-    items: [
-      { label: "담당자 실적", href: "#", icon: "📊" },
-      { label: "서류 배당 현황", href: "#", icon: "📈" },
-    ],
-  },
-  {
-    title: "운영",
-    items: [{ label: "문자/알림톡", href: "#", icon: "💬" }],
   },
 ];
 
-export default function Sidebar({ activeHref }: { activeHref?: string }) {
+export default function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="w-56 shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-4 border-b border-gray-100">
         <p className="text-base font-bold text-gray-900">박기표_HR프로젝트</p>
-        <p className="text-xs text-gray-400">개인회생 전산</p>
+        <p className="text-xs text-gray-400">HR 관리 시스템</p>
       </div>
 
       <div className="px-3 py-3">
@@ -79,7 +57,8 @@ export default function Sidebar({ activeHref }: { activeHref?: string }) {
             )}
             <ul>
               {group.items.map((item) => {
-                const isActive = item.href && activeHref?.startsWith(item.href) && item.href !== "#";
+                const isActive =
+                  item.href && item.href !== "#" && pathname?.startsWith(item.href);
                 return (
                   <li key={item.label}>
                     <Link

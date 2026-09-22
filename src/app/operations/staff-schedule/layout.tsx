@@ -8,7 +8,7 @@ export default function StaffScheduleLayout({ children }: LayoutProps<"/operatio
     <LeaveProvider>
       <DutyProvider>
         <div className="flex h-screen w-full">
-          <Sidebar activeHref="/operations/staff-schedule" />
+          <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <header className="border-b border-gray-200 bg-white px-6 py-4">
               <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
