@@ -69,6 +69,12 @@ interface MergedRow {
   secondNoticeAt?: string;
   secondNoticeStart?: string;
   secondNoticeEnd?: string;
+  // 화면 표시용: A/B묶음 두 행이 정렬 결과에서 서로 바로 옆에 남아있을 때만
+  // 이름 칸을 rowSpan으로 합쳐 같은 사람임을 보여준다. 두 행이 흩어지면
+  // (마감일이 갈라지면) 그냥 각자 이름을 그대로 보여준다 — "A묶음"/"B묶음"
+  // 같은 라벨 텍스트를 화면에 노출하지 않고도 항상 안전하게 표시되도록.
+  nameRowSpan: number;
+  hideNameCell: boolean;
 }
 
 export default function LeavePromotionPanel() {
@@ -116,6 +122,8 @@ export default function LeavePromotionPanel() {
           secondNoticeAt: notice?.secondNoticeAt,
           secondNoticeStart: notice?.secondNoticeStart,
           secondNoticeEnd: notice?.secondNoticeEnd,
+          nameRowSpan: 1,
+          hideNameCell: false,
         });
         continue;
       }
@@ -137,17 +145,30 @@ export default function LeavePromotionPanel() {
           secondNoticeAt: batchNotice?.secondNoticeAt,
           secondNoticeStart: batchNotice?.secondNoticeStart,
           secondNoticeEnd: batchNotice?.secondNoticeEnd,
+          nameRowSpan: 1,
+          hideNameCell: false,
         });
       });
     }
 
-    return list.sort((a, b) => {
+    const sorted = list.sort((a, b) => {
       const aHasDeadline = a.deadline !== null;
       const bHasDeadline = b.deadline !== null;
       if (aHasDeadline && bHasDeadline) return a.deadline!.daysLeft - b.deadline!.daysLeft;
       if (aHasDeadline !== bHasDeadline) return aHasDeadline ? -1 : 1;
       return stagePriority[a.stage] - stagePriority[b.stage];
     });
+
+    for (let i = 0; i < sorted.length; i++) {
+      const row = sorted[i];
+      const next = sorted[i + 1];
+      if (row.batch && next?.batch && next.staff.id === row.staff.id) {
+        row.nameRowSpan = 2;
+        next.hideNameCell = true;
+      }
+    }
+
+    return sorted;
   }, [staffList, remainingDaysByStaff, noticeByStaffId]);
 
   const actionNeededCount = rows.filter(
@@ -225,20 +246,22 @@ export default function LeavePromotionPanel() {
               </tr>
             )}
             {rows.map((row) => {
-              const { staff, batch, remaining, stage, deadline } = row;
+              const { staff, remaining, stage, deadline } = row;
               const isEditing = editingKey === row.key;
               return (
                 <tr key={row.key} className="border-b border-gray-50 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
+                  {!row.hideNameCell && (
+                    <td
+                      rowSpan={row.nameRowSpan}
+                      className="px-4 py-2.5 font-medium text-gray-900 align-top"
+                    >
+                      {staff.name}
+                    </td>
+                  )}
                   <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
                   <td className="px-4 py-2.5 text-gray-700">{remaining}일</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      {batch && (
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
-                          {batch}묶음
-                        </span>
-                      )}
                       <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[stage]}`}>
                         {stage}
                       </span>
