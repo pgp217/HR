@@ -25,8 +25,6 @@ interface TripContextValue {
   staffById: Map<string, Staff>;
   todayTripCount: number;
   todayOutingCount: number;
-  thisWeekCount: number;
-  unreachableCount: number;
   pendingCount: number;
   handleCreate: (input: NewTripInput) => void;
   handleDecision: (id: string, status: TripStatus) => void;
@@ -55,13 +53,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       ).length,
     [records]
   );
-
-  const thisWeekCount = useMemo(() => {
-    const weekAgo = toISODate(new Date(today().getTime() - 6 * 24 * 60 * 60 * 1000));
-    return records.filter((r) => r.startDate >= weekAgo && r.startDate <= todayISO).length;
-  }, [records]);
-
-  const unreachableCount = useMemo(() => records.filter((r) => !r.reachable).length, [records]);
 
   const pendingCount = useMemo(
     () => records.filter((r) => r.status === "승인대기").length,
@@ -96,8 +87,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     staffById,
     todayTripCount,
     todayOutingCount,
-    thisWeekCount,
-    unreachableCount,
     pendingCount,
     handleCreate,
     handleDecision,

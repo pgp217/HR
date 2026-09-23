@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Staff, TripRecord, TripStatus } from "@/lib/types";
-import { formatKoreanDate } from "@/lib/date";
+import { formatKoreanDate, toISODate, today } from "@/lib/date";
 
 interface Props {
   records: TripRecord[];
@@ -19,12 +19,56 @@ const statusStyles: Record<TripStatus, string> = {
   반려: "bg-red-50 text-red-700",
 };
 
+const todayISO = toISODate(today());
+
+// 오늘로부터 며칠 떨어져 있는지(과거는 음수)를 구한다 — 기본 정렬은 이
+// 값의 절댓값이 작은 순, 즉 오늘이 항상 맨 위로 오는 "오늘에 가까운 순".
+function dayDistanceFromToday(dateISO: string): number {
+  return Math.round((new Date(dateISO).getTime() - new Date(todayISO).getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default function TripList({ records, staffById, onDecision, onDelete }: Props) {
   const [filter, setFilter] = useState<(typeof filters)[number]>("승인대기");
 
+  const now = today();
+  const [viewMode, setViewMode] = useState<"all" | "month">("all");
+  const [navYear, setNavYear] = useState(now.getFullYear());
+  const [navMonth, setNavMonth] = useState(now.getMonth());
+
+  function goToPrevMonth() {
+    if (navMonth === 0) {
+      setNavYear((y) => y - 1);
+      setNavMonth(11);
+    } else {
+      setNavMonth((m) => m - 1);
+    }
+  }
+
+  function goToNextMonth() {
+    if (navMonth === 11) {
+      setNavYear((y) => y + 1);
+      setNavMonth(0);
+    } else {
+      setNavMonth((m) => m + 1);
+    }
+  }
+
   const filtered = records
     .filter((r) => (filter === "전체" ? true : r.status === filter))
-    .sort((a, b) => (a.startDate < b.startDate ? 1 : -1));
+    .filter((r) => {
+      if (viewMode !== "month") return true;
+      const [y, m] = r.startDate.split("-").map(Number);
+      return y === navYear && m === navMonth + 1;
+    })
+    .sort((a, b) => {
+      if (viewMode === "month") {
+        return a.startDate < b.startDate ? -1 : 1;
+      }
+      const da = Math.abs(dayDistanceFromToday(a.startDate));
+      const db = Math.abs(dayDistanceFromToday(b.startDate));
+      if (da !== db) return da - db;
+      return a.startDate < b.startDate ? -1 : 1;
+    });
 
   function handleDeleteClick(r: TripRecord, staffName: string) {
     const confirmed = window.confirm(
@@ -52,6 +96,43 @@ export default function TripList({ records, staffById, onDecision, onDelete }: P
             </button>
           ))}
         </div>
+      </div>
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setViewMode("all")}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+              viewMode === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            전체 (오늘 순)
+          </button>
+          <button
+            onClick={() => setViewMode("month")}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+              viewMode === "month"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            월별 보기
+          </button>
+        </div>
+        {viewMode === "month" && (
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={goToPrevMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+              ‹
+            </button>
+            <span className="w-20 text-center font-medium text-gray-700">
+              {navYear}년 {navMonth + 1}월
+            </span>
+            <button onClick={goToNextMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+              ›
+            </button>
+          </div>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
