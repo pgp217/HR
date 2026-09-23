@@ -4,6 +4,7 @@ import { createContext, useContext, useMemo, useState } from "react";
 import type { LeaveGrant, LeaveRequest, LeaveStatus, LeaveType, Staff } from "@/lib/types";
 import { staffList, initialLeaveGrants, initialLeaveRequests, CURRENT_YEAR } from "@/lib/mock-data";
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
+import { accrualAsOfDateForYear, computeAnnualLeaveDays } from "@/lib/leave-accrual";
 
 const todayISO = toISODate(today());
 const CURRENT_APPROVER = "박기표";
@@ -38,7 +39,7 @@ interface LeaveContextValue {
   updateGrant: (
     staffId: string,
     year: number,
-    patch: Partial<Pick<LeaveGrant, "granted" | "carryover" | "adjustment">>
+    patch: Partial<Pick<LeaveGrant, "carryover" | "adjustment">>
   ) => void;
 }
 
@@ -52,9 +53,11 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
 
   const grantedDaysByStaff = useMemo(() => {
     const map = new Map<string, number>();
-    for (const g of grants) {
-      if (g.year !== CURRENT_YEAR) continue;
-      map.set(g.staffId, g.granted + g.carryover + g.adjustment);
+    const asOf = accrualAsOfDateForYear(CURRENT_YEAR, todayISO);
+    for (const staff of staffList) {
+      const accrued = computeAnnualLeaveDays(staff, asOf, staffList.length).days;
+      const g = grants.find((gr) => gr.staffId === staff.id && gr.year === CURRENT_YEAR);
+      map.set(staff.id, accrued + (g?.carryover ?? 0) + (g?.adjustment ?? 0));
     }
     return map;
   }, [grants]);
@@ -142,15 +145,12 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
   function updateGrant(
     staffId: string,
     year: number,
-    patch: Partial<Pick<LeaveGrant, "granted" | "carryover" | "adjustment">>
+    patch: Partial<Pick<LeaveGrant, "carryover" | "adjustment">>
   ) {
     setGrants((prev) => {
       const idx = prev.findIndex((g) => g.staffId === staffId && g.year === year);
       if (idx === -1) {
-        return [
-          ...prev,
-          { staffId, year, granted: 0, carryover: 0, adjustment: 0, ...patch },
-        ];
+        return [...prev, { staffId, year, carryover: 0, adjustment: 0, ...patch }];
       }
       const next = [...prev];
       next[idx] = { ...next[idx], ...patch };

@@ -11,10 +11,12 @@ export type LeaveType = "연차" | "반차(오전)" | "반차(오후)" | "경조
 
 export type LeaveStatus = "승인대기" | "승인" | "반려";
 
+// 연차 부여(granted)일수는 근로기준법 제60조 기준으로 시스템이 자동
+// 계산한다(computeAnnualLeaveDays 참고) — 그래서 이 레코드는 사람이
+// 직접 입력해야 하는 이월/조정 값만 담는다.
 export interface LeaveGrant {
   staffId: string;
   year: number;
-  granted: number; // 부여
   carryover: number; // 이월
   adjustment: number; // 조정 (+/-)
 }

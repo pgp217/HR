@@ -14,15 +14,9 @@ export const staffList: Staff[] = [
 const t = today();
 export const CURRENT_YEAR = t.getFullYear();
 
-export const initialLeaveGrants: LeaveGrant[] = [
-  { staffId: "s1", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
-  { staffId: "s2", year: CURRENT_YEAR, granted: 16, carryover: 0, adjustment: 0 },
-  { staffId: "s3", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
-  { staffId: "s4", year: CURRENT_YEAR, granted: 17, carryover: 0, adjustment: 0 },
-  { staffId: "s5", year: CURRENT_YEAR, granted: 11, carryover: 0, adjustment: 0 },
-  { staffId: "s6", year: CURRENT_YEAR, granted: 15, carryover: 0, adjustment: 0 },
-  { staffId: "s7", year: CURRENT_YEAR, granted: 9, carryover: 0, adjustment: 0 },
-];
+// 연차 발생일수(granted)는 이제 근로기준법 기준으로 자동 계산되므로
+// (computeAnnualLeaveDays 참고) 이 레코드는 이월/조정 값만 담는다.
+export const initialLeaveGrants: LeaveGrant[] = [];
 
 export const initialDutyPolicy: DutyPolicy = {
   weekendIncluded: true,
