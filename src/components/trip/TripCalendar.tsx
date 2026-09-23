@@ -95,7 +95,7 @@ export default function TripCalendar({ records, staffById }: Props) {
                   <span
                     key={r.id}
                     title={`${staffById.get(r.staffId)?.name} · ${r.type} · ${r.purpose}`}
-                    className={`truncate rounded px-1 py-0.5 text-[10px] ${typeStyles[r.type]}`}
+                    className={`w-fit max-w-full self-start truncate rounded px-1 py-0.5 text-[10px] ${typeStyles[r.type]}`}
                   >
                     {staffById.get(r.staffId)?.name}
                   </span>

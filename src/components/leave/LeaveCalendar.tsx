@@ -83,7 +83,7 @@ export default function LeaveCalendar({ requests, staffById }: Props) {
                   <span
                     key={r.id}
                     title={`${staffById.get(r.staffId)?.name} · ${formatLeaveTypeLabel(r.type)}`}
-                    className="truncate rounded bg-blue-50 px-1 py-0.5 text-[10px] text-blue-700"
+                    className="w-fit max-w-full self-start truncate rounded bg-blue-50 px-1 py-0.5 text-[10px] text-blue-700"
                   >
                     {staffById.get(r.staffId)?.name}
                   </span>
