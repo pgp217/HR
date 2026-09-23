@@ -6,6 +6,7 @@ import { useTrip } from "@/components/trip/TripContext";
 import { useApproveWithDutySwap } from "@/hooks/useApproveWithDutySwap";
 import RequestList from "./RequestList";
 import TripList from "@/components/trip/TripList";
+import LeavePromotionPanel from "./LeavePromotionPanel";
 
 export default function ApprovalsManager() {
   const { requests, staffById, pendingCount, handleDelete, handleUpdateReason } = useLeave();
@@ -68,6 +69,8 @@ export default function ApprovalsManager() {
         onDecision={handleTripDecision}
         onDelete={handleTripDelete}
       />
+
+      <LeavePromotionPanel />
     </div>
   );
 }

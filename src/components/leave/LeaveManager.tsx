@@ -8,7 +8,6 @@ import BalanceTable from "./BalanceTable";
 import RequestList from "./RequestList";
 import RequestFormModal from "./RequestFormModal";
 import LeaveCalendar from "./LeaveCalendar";
-import LeavePromotionPanel from "./LeavePromotionPanel";
 
 export default function LeaveManager() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -71,8 +70,6 @@ export default function LeaveManager() {
         onDelete={handleDelete}
         onUpdateReason={handleUpdateReason}
       />
-
-      <LeavePromotionPanel />
 
       {isFormOpen && (
         <RequestFormModal
