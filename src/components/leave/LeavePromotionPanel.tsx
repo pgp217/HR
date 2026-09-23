@@ -16,8 +16,8 @@
 // 1년 이상자와 시각적으로 통일하기 위해 표에는 한 사람당 한 줄만 낸다.
 // 두 사이클 중 더 급한 쪽(상태 우선순위: 2차대상 > 1차대상 >
 // 근로자응답대기 > 완료/1차대기, 동순위면 마감일이 더 가까운 쪽)을 그
-// 줄의 대표로 보여주고, 나머지 한 사이클을 포함한 전체 상세는 "상세"
-// 버튼을 눌러 모달로 확인한다.
+// 줄의 대표로 보여준다. (나머지 한 사이클의 상세를 보여주는 UI는 표
+// 레이아웃이 흐트러져 일단 뺐다 — 필요해지면 다시 붙이면 된다.)
 
 import { useMemo, useState } from "react";
 import { useLeave } from "./LeaveContext";
@@ -28,7 +28,6 @@ import {
   getDeadlineInfo,
   getUnderOneYearBatchStage,
   getUnderOneYearBatchDeadlineInfo,
-  UNDER_ONE_YEAR_BATCH_MAX_DAYS,
   type PromotionStage,
   type DeadlineInfo,
   type UnderOneYearBatchId,
@@ -63,11 +62,6 @@ const stagePriority: Record<PromotionStage, number> = {
   대상아님: 5,
 };
 
-const batchCycleLabel: Record<UnderOneYearBatchId, string> = {
-  A: "최초 9개월분",
-  B: "10·11개월째분",
-};
-
 interface NoticeFields {
   stage: PromotionStage;
   deadline: DeadlineInfo | null;
@@ -89,7 +83,6 @@ interface MergedRow extends NoticeFields {
   staff: Staff;
   remaining: number;
   representativeBatch?: UnderOneYearBatchId; // 1년 이상자 행이면 undefined
-  batchDetails?: BatchDetail[]; // 1년 미만자 행에서만 채워짐(상세 모달용)
 }
 
 // 더 급한 쪽을 고른다: 상태 우선순위가 낮을수록(= stagePriority 숫자가
@@ -122,7 +115,6 @@ export default function LeavePromotionPanel() {
   const [draftStart, setDraftStart] = useState("");
   const [draftEnd, setDraftEnd] = useState("");
   const [draftError, setDraftError] = useState("");
-  const [detailStaffId, setDetailStaffId] = useState<string | null>(null);
 
   const noticeByStaffId = useMemo(
     () => new Map(promotionNotices.map((n) => [n.staffId, n])),
@@ -178,7 +170,6 @@ export default function LeavePromotionPanel() {
         staff,
         remaining,
         representativeBatch: rep.batch,
-        batchDetails,
         stage: rep.stage,
         deadline: rep.deadline,
         firstNoticeAt: rep.firstNoticeAt,
@@ -203,8 +194,6 @@ export default function LeavePromotionPanel() {
   const actionNeededCount = rows.filter(
     (r) => r.stage === "1차대상" || r.stage === "2차대상"
   ).length;
-
-  const detailRow = detailStaffId ? rows.find((r) => r.staff.id === detailStaffId) : undefined;
 
   function startEditing(key: string) {
     setEditingKey(key);
@@ -287,20 +276,7 @@ export default function LeavePromotionPanel() {
               const isEditing = editingKey === row.key;
               return (
                 <tr key={row.key} className="border-b border-gray-50 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-gray-900">
-                    <div className="flex items-center gap-1.5">
-                      <span>{staff.name}</span>
-                      {row.batchDetails && (
-                        <button
-                          onClick={() => setDetailStaffId(staff.id)}
-                          title="두 촉구 사이클 상세보기"
-                          className="rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-normal text-gray-500 hover:bg-gray-50"
-                        >
-                          상세
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
                   <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
                   <td className="px-4 py-2.5 text-gray-700">{remaining}일</td>
                   <td className="px-4 py-2.5">
@@ -441,75 +417,6 @@ export default function LeavePromotionPanel() {
           </tbody>
         </table>
       </div>
-
-      {detailRow?.batchDetails && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => setDetailStaffId(null)}
-        >
-          <div
-            className="w-full max-w-lg rounded-lg bg-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-              <h4 className="text-sm font-semibold text-gray-900">
-                {detailRow.staff.name} — 촉구 사이클 상세
-              </h4>
-              <button
-                onClick={() => setDetailStaffId(null)}
-                className="rounded px-2 py-1 text-xs text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-              >
-                닫기
-              </button>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {detailRow.batchDetails.map((d) => (
-                <div key={d.batch} className="px-4 py-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-700">
-                      {batchCycleLabel[d.batch]} (대상 연차 {UNDER_ONE_YEAR_BATCH_MAX_DAYS[d.batch]}일)
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[d.stage]}`}>
-                        {d.stage}
-                      </span>
-                      {d.deadline && (
-                        <span
-                          className={`text-xs font-medium ${
-                            d.deadline.urgent ? "text-red-600" : "text-gray-400"
-                          }`}
-                        >
-                          {d.deadline.label}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <dl className="grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <dt className="text-gray-400">1차 촉구일</dt>
-                      <dd className="text-gray-700">
-                        {d.firstNoticeAt ? formatKoreanDate(d.firstNoticeAt) : "-"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-400">근로자 응답</dt>
-                      <dd className="text-gray-700">
-                        {formatRange(d.employeeSpecifiedStart, d.employeeSpecifiedEnd)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-400">2차 통보</dt>
-                      <dd className="text-gray-700">
-                        {formatRange(d.secondNoticeStart, d.secondNoticeEnd)}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
