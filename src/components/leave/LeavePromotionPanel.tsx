@@ -112,7 +112,7 @@ export default function LeavePromotionPanel() {
         <div>
           <h3 className="text-sm font-semibold text-gray-900">연차 사용 촉진 (근로기준법 제61조)</h3>
           <p className="mt-0.5 text-xs text-gray-400">
-            1차 촉구(7/1~7/10) → 근로자 응답(10일 이내) → 미응답 시 2차 통보(~11/1) 순으로 진행합니다.
+            1차 촉구(7/1~7/10) → 근로자 응답(10일 이내) → 미응답 시 2차 통보(~10/31) 순으로 진행합니다.
             근로자 응답·2차 통보를 기록하면 지정한 기간이 휴가 신청 목록에 승인 상태로 자동 등록됩니다.
           </p>
         </div>
