@@ -1,10 +1,17 @@
 import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff, TripRecord } from "./types";
 import { addDays, today } from "./date";
+import { compareStaffSeniority } from "./staff-order";
 
 // 직급 체계: 사원(근속 0~1년) → 주임(2~3) → 대리(4~5) → 과장(6~8)
 // → 차장(9~12) → 부장(13년~). 인원 구성: 부장 2 / 차장 3 / 과장 5 /
 // 대리 10 / 주임 6 / 사원 4 = 총 30명.
-export const staffList: Staff[] = [
+//
+// 아래 배열은 입력 순서(기존 7명 + 신규 23명)이고, 실제로 내보내는
+// staffList는 직급 높은 순 → 같은 직급 내 입사일 빠른 순으로 정렬한
+// 결과다. 직원 목록이 나열되는 모든 화면(오늘 현황, 연차 부여, 당직
+// 대기열 등)이 이 배열을 그대로 쓰므로 한 곳만 정렬하면 전체에
+// 일괄 반영된다.
+const rawStaffList: Staff[] = [
   // 기존 7명 (joinedAt은 그대로, 직급만 근속연수에 맞게 부여)
   { id: "s1", name: "김민준", role: "대리", joinedAt: "2021-03-02" },
   { id: "s2", name: "이서연", role: "과장", joinedAt: "2020-07-14" },
@@ -38,6 +45,8 @@ export const staffList: Staff[] = [
   { id: "s29", name: "고은채", role: "사원", joinedAt: "2026-01-20" },
   { id: "s30", name: "문재원", role: "사원", joinedAt: "2025-02-14" },
 ];
+
+export const staffList: Staff[] = [...rawStaffList].sort(compareStaffSeniority);
 
 const t = today();
 export const CURRENT_YEAR = t.getFullYear();

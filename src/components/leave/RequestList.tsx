@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { LeaveRequest, LeaveStatus, Staff } from "@/lib/types";
 import { formatKoreanDate } from "@/lib/date";
 import { formatLeaveTypeLabel } from "@/lib/leave-display";
+import { compareStaffSeniority } from "@/lib/staff-order";
 
 interface Props {
   requests: LeaveRequest[];
@@ -34,7 +35,15 @@ export default function RequestList({
 
   const filtered = requests
     .filter((r) => (filter === "전체" ? true : r.status === filter))
-    .sort((a, b) => (a.requestedAt < b.requestedAt ? 1 : -1));
+    .sort((a, b) => {
+      const staffA = staffById.get(a.staffId);
+      const staffB = staffById.get(b.staffId);
+      if (staffA && staffB) {
+        const cmp = compareStaffSeniority(staffA, staffB);
+        if (cmp !== 0) return cmp;
+      }
+      return a.requestedAt < b.requestedAt ? 1 : -1;
+    });
 
   function handleDeleteClick(req: LeaveRequest, staffName: string) {
     const confirmed = window.confirm(
