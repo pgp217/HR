@@ -13,7 +13,7 @@ export default function TodayPage() {
   const todayISO = toISODate(today());
   const { requests, staffList, pendingCount } = useLeave();
   const { assignments } = useDuty();
-  const { records: tripRecords } = useTrip();
+  const { records: tripRecords, pendingCount: tripPendingCount } = useTrip();
 
   const onLeaveToday = requests.filter(
     (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
@@ -26,7 +26,6 @@ export default function TodayPage() {
     (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
   );
   const tripByStaffId = new Map(todayTrips.map((r) => [r.staffId, r]));
-  const awayTodayStaffIds = new Set([...onLeaveStaffIds, ...tripByStaffId.keys()]);
 
   // "현재 인원": 오늘 일정이 아니라 지금 이 순간 자리에 있는지를 본다.
   // 반차/외출은 지정된 시간대에만 부재로 치고, 종일 휴가·출장은 하루
@@ -88,7 +87,7 @@ export default function TodayPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-lg border border-green-200 bg-green-50 p-4">
           <p className="text-sm text-green-700">🟢 현재 인원</p>
           <p className="mt-2 text-2xl font-bold text-green-700">
@@ -100,18 +99,22 @@ export default function TodayPage() {
           <p className="mt-2 text-2xl font-bold text-gray-900">{staffList.length}명</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">오늘 휴가·출장·외출</p>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{awayTodayStaffIds.size}명</p>
+          <p className="text-sm text-gray-500">오늘 휴가</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{onLeaveToday.length}명</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-500">오늘 출장·외출</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{todayTrips.length}건</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">정상 근무</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">
-            {staffList.length - awayTodayStaffIds.size}명
+            {staffList.length - onLeaveToday.length}명
           </p>
         </div>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm text-amber-700">휴가 승인 대기</p>
-          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount}건</p>
+          <p className="text-sm text-amber-700">승인 대기</p>
+          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount + tripPendingCount}건</p>
         </div>
       </div>
 
