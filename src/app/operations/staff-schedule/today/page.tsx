@@ -118,70 +118,65 @@ export default function TodayPage() {
         </div>
       </div>
 
-      <div className="w-fit self-start rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-gray-200 bg-white">
         <div className="border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">직원별 오늘 운영 상태</h3>
         </div>
-        <div className="overflow-x-auto">
-        <table className="text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 text-left text-xs whitespace-nowrap text-gray-500">
-              <th className="px-4 py-2 font-medium">직원</th>
-              <th className="px-4 py-2 font-medium">역할</th>
-              <th className="px-4 py-2 font-medium">근무</th>
-              <th className="px-4 py-2 font-medium">당직</th>
-              <th className="px-4 py-2 font-medium">출장·외출</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staffList.map((staff) => {
-              const onLeave = onLeaveStaffIds.has(staff.id);
-              const leaveReq = onLeaveToday.find((r) => r.staffId === staff.id);
-              const onDuty = staff.id === dutyStaffId;
-              return (
-                <tr key={staff.id} className="border-b border-gray-50 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
-                  <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
-                  <td className="px-4 py-2.5">
-                    {onLeave ? (
-                      <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        {leaveReq && formatLeaveTypeLabel(leaveReq.type)}
-                      </span>
-                    ) : (
-                      <span className="text-gray-700">정상근무</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {onDuty ? (
-                      <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                        당직
-                      </span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {tripByStaffId.has(staff.id) ? (
-                      <span
-                        title={tripByStaffId.get(staff.id)?.purpose}
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${
-                          tripByStaffId.get(staff.id)?.type === "출장"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-amber-50 text-amber-700"
-                        }`}
-                      >
-                        {tripByStaffId.get(staff.id)?.type}
-                      </span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="grid grid-cols-5 gap-2 border-b border-gray-100 px-4 py-2 text-left text-xs text-gray-500">
+          <span className="font-medium">직원</span>
+          <span className="font-medium">역할</span>
+          <span className="font-medium">근무</span>
+          <span className="font-medium">당직</span>
+          <span className="font-medium">출장·외출</span>
         </div>
+        {staffList.map((staff) => {
+          const onLeave = onLeaveStaffIds.has(staff.id);
+          const leaveReq = onLeaveToday.find((r) => r.staffId === staff.id);
+          const onDuty = staff.id === dutyStaffId;
+          return (
+            <div
+              key={staff.id}
+              className="grid grid-cols-5 items-center gap-2 border-b border-gray-50 px-4 py-2.5 text-sm last:border-0"
+            >
+              <span className="font-medium text-gray-900">{staff.name}</span>
+              <span className="text-gray-500">{staff.role}</span>
+              <span>
+                {onLeave ? (
+                  <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    {leaveReq && formatLeaveTypeLabel(leaveReq.type)}
+                  </span>
+                ) : (
+                  <span className="text-gray-700">정상근무</span>
+                )}
+              </span>
+              <span>
+                {onDuty ? (
+                  <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                    당직
+                  </span>
+                ) : (
+                  <span className="text-gray-300">-</span>
+                )}
+              </span>
+              <span>
+                {tripByStaffId.has(staff.id) ? (
+                  <span
+                    title={tripByStaffId.get(staff.id)?.purpose}
+                    className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      tripByStaffId.get(staff.id)?.type === "출장"
+                        ? "bg-blue-50 text-blue-700"
+                        : "bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {tripByStaffId.get(staff.id)?.type}
+                  </span>
+                ) : (
+                  <span className="text-gray-300">-</span>
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       <p className="text-sm text-gray-400">
