@@ -4,7 +4,17 @@ import { useMemo, useState } from "react";
 import { useLeave } from "./LeaveContext";
 import { CURRENT_YEAR } from "@/lib/mock-data";
 import { formatKoreanDate, toISODate, today } from "@/lib/date";
-import { getPromotionStage, getDeadlineInfo, type PromotionStage } from "@/lib/leave-promotion";
+import {
+  getPromotionStage,
+  getDeadlineInfo,
+  getUnderOneYearBatchStage,
+  getUnderOneYearBatchDeadlineInfo,
+  underOneYearUsageEnd,
+  type PromotionStage,
+  type PromotionBatchNotice,
+  type UnderOneYearBatchId,
+} from "@/lib/leave-promotion";
+import { tenureYearsAt } from "@/lib/leave-accrual";
 
 function formatRange(start?: string, end?: string): string {
   if (!start || !end) return "-";
@@ -41,12 +51,20 @@ export default function LeavePromotionPanel() {
     sendFirstNotice,
     recordEmployeeResponse,
     sendSecondNotice,
+    sendBatchFirstNotice,
+    recordBatchEmployeeResponse,
+    sendBatchSecondNotice,
   } = useLeave();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftStart, setDraftStart] = useState("");
   const [draftEnd, setDraftEnd] = useState("");
   const [draftError, setDraftError] = useState("");
+
+  const [editingBatchKey, setEditingBatchKey] = useState<string | null>(null);
+  const [batchDraftStart, setBatchDraftStart] = useState("");
+  const [batchDraftEnd, setBatchDraftEnd] = useState("");
+  const [batchDraftError, setBatchDraftError] = useState("");
 
   const noticeByStaffId = useMemo(
     () => new Map(promotionNotices.map((n) => [n.staffId, n])),
@@ -74,6 +92,73 @@ export default function LeavePromotionPanel() {
   const actionNeededCount = rows.filter(
     (r) => r.stage === "1차대상" || r.stage === "2차대상"
   ).length;
+
+  const batchRows = useMemo(() => {
+    const list: {
+      staff: (typeof staffList)[number];
+      batch: UnderOneYearBatchId;
+      notice?: PromotionBatchNotice;
+      stage: PromotionStage;
+      deadline: ReturnType<typeof getUnderOneYearBatchDeadlineInfo>;
+    }[] = [];
+    for (const staff of staffList) {
+      if (tenureYearsAt(staff.joinedAt, todayISO) >= 1) continue;
+      const notice = noticeByStaffId.get(staff.id);
+      (["A", "B"] as const).forEach((batch) => {
+        const batchNotice = batch === "A" ? notice?.underOneYearBatchA : notice?.underOneYearBatchB;
+        const stage = getUnderOneYearBatchStage(todayISO, staff.joinedAt, batch, batchNotice);
+        const deadline = getUnderOneYearBatchDeadlineInfo(
+          todayISO,
+          staff.joinedAt,
+          batch,
+          stage,
+          batchNotice
+        );
+        list.push({ staff, batch, notice: batchNotice, stage, deadline });
+      });
+    }
+    return list.sort((a, b) => {
+      const p = stagePriority[a.stage] - stagePriority[b.stage];
+      if (p !== 0) return p;
+      if (a.deadline && b.deadline) return a.deadline.daysLeft - b.deadline.daysLeft;
+      return 0;
+    });
+  }, [staffList, noticeByStaffId]);
+
+  const batchActionNeededCount = batchRows.filter(
+    (r) => r.stage === "1차대상" || r.stage === "2차대상"
+  ).length;
+
+  function startEditingBatch(staffId: string, batch: UnderOneYearBatchId) {
+    setEditingBatchKey(`${staffId}-${batch}`);
+    setBatchDraftStart("");
+    setBatchDraftEnd("");
+    setBatchDraftError("");
+  }
+
+  function validateBatchDraft(): boolean {
+    if (!batchDraftStart || !batchDraftEnd) {
+      setBatchDraftError("시작일과 종료일을 모두 입력해주세요.");
+      return false;
+    }
+    if (batchDraftEnd < batchDraftStart) {
+      setBatchDraftError("종료일은 시작일보다 빠를 수 없습니다.");
+      return false;
+    }
+    return true;
+  }
+
+  function submitBatchResponse(staffId: string, batch: UnderOneYearBatchId) {
+    if (!validateBatchDraft()) return;
+    recordBatchEmployeeResponse(staffId, batch, batchDraftStart, batchDraftEnd);
+    setEditingBatchKey(null);
+  }
+
+  function submitBatchSecondNotice(staffId: string, batch: UnderOneYearBatchId) {
+    if (!validateBatchDraft()) return;
+    sendBatchSecondNotice(staffId, batch, batchDraftStart, batchDraftEnd);
+    setEditingBatchKey(null);
+  }
 
   function startEditing(staffId: string) {
     setEditingId(staffId);
@@ -107,6 +192,7 @@ export default function LeavePromotionPanel() {
   }
 
   return (
+    <>
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
         <div>
@@ -290,5 +376,200 @@ export default function LeavePromotionPanel() {
         </table>
       </div>
     </div>
+
+    <div className="mt-4 rounded-lg border border-gray-200 bg-white">
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">
+            1년 미만 재직자 연차 사용 촉진 (근로기준법 제61조 2항)
+          </h3>
+          <p className="mt-0.5 text-xs text-gray-400">
+            입사일 기준 최초 1년의 근로기간이 끝나기 전, A묶음(최초 9개월분·만료 3개월 전 1차/10일 이내
+            응답/만료 1개월 전 2차)과 B묶음(10·11개월분·만료 1개월 전 1차/5일 이내 응답/만료 10일 전 2차)으로
+            나눠 촉진합니다.
+          </p>
+        </div>
+        {batchActionNeededCount > 0 && (
+          <span className="rounded bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+            조치 필요 {batchActionNeededCount}건
+          </span>
+        )}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+              <th className="px-4 py-2 font-medium">직원</th>
+              <th className="px-4 py-2 font-medium">묶음</th>
+              <th className="px-4 py-2 font-medium">근로기간 만료일</th>
+              <th className="px-4 py-2 font-medium">상태</th>
+              <th className="px-4 py-2 font-medium">1차 촉구일</th>
+              <th className="px-4 py-2 font-medium">근로자 응답</th>
+              <th className="px-4 py-2 font-medium">2차 통보</th>
+              <th className="px-4 py-2 font-medium">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {batchRows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                  1년 미만 재직자가 없습니다.
+                </td>
+              </tr>
+            )}
+            {batchRows.map(({ staff, batch, notice, stage, deadline }) => {
+              const key = `${staff.id}-${batch}`;
+              const isEditing = editingBatchKey === key;
+              return (
+                <tr key={key} className="border-b border-gray-50 last:border-0">
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
+                  <td className="px-4 py-2.5 text-gray-500">{batch}묶음</td>
+                  <td className="px-4 py-2.5 text-gray-500">
+                    {formatKoreanDate(underOneYearUsageEnd(staff.joinedAt))}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[stage]}`}>
+                        {stage}
+                      </span>
+                      {deadline && (
+                        <span
+                          className={`text-xs font-medium ${
+                            deadline.urgent ? "text-red-600" : "text-gray-400"
+                          }`}
+                        >
+                          {deadline.label}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500">
+                    {notice?.firstNoticeAt ? formatKoreanDate(notice.firstNoticeAt) : "-"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500">
+                    {notice?.employeeSpecifiedAt ? (
+                      <span title={`통보일: ${formatKoreanDate(notice.employeeSpecifiedAt)}`}>
+                        {formatRange(notice.employeeSpecifiedStart, notice.employeeSpecifiedEnd)}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500">
+                    {notice?.secondNoticeAt ? (
+                      <span title={`통보일: ${formatKoreanDate(notice.secondNoticeAt)}`}>
+                        {formatRange(notice.secondNoticeStart, notice.secondNoticeEnd)}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {stage === "1차대상" && (
+                      <button
+                        onClick={() => sendBatchFirstNotice(staff.id, batch)}
+                        className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                      >
+                        1차 촉구 발송
+                      </button>
+                    )}
+                    {stage === "근로자응답대기" &&
+                      (isEditing ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              autoFocus
+                              type="date"
+                              value={batchDraftStart}
+                              onChange={(e) => setBatchDraftStart(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={batchDraftEnd}
+                              onChange={(e) => setBatchDraftEnd(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <button
+                              onClick={() => submitBatchResponse(staff.id, batch)}
+                              className="rounded bg-blue-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                            >
+                              저장
+                            </button>
+                            <button
+                              onClick={() => setEditingBatchKey(null)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                            >
+                              취소
+                            </button>
+                          </div>
+                          {batchDraftError && (
+                            <p className="text-[11px] text-red-600">{batchDraftError}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditingBatch(staff.id, batch)}
+                          className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                          근로자 응답 기록
+                        </button>
+                      ))}
+                    {stage === "2차대상" &&
+                      (isEditing ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              autoFocus
+                              type="date"
+                              value={batchDraftStart}
+                              onChange={(e) => setBatchDraftStart(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={batchDraftEnd}
+                              onChange={(e) => setBatchDraftEnd(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <button
+                              onClick={() => submitBatchSecondNotice(staff.id, batch)}
+                              className="rounded bg-red-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-red-700"
+                            >
+                              발송
+                            </button>
+                            <button
+                              onClick={() => setEditingBatchKey(null)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                            >
+                              취소
+                            </button>
+                          </div>
+                          {batchDraftError && (
+                            <p className="text-[11px] text-red-600">{batchDraftError}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditingBatch(staff.id, batch)}
+                          className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                        >
+                          2차 통보 발송
+                        </button>
+                      ))}
+                    {(stage === "완료" || stage === "1차대기") && (
+                      <span className="text-xs text-gray-300">-</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </>
   );
 }

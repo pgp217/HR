@@ -32,7 +32,7 @@ export default function LeaveGrantsPanel() {
     const asOf = accrualAsOfDateForYear(year, todayISO);
     const map = new Map<string, ReturnType<typeof computeAnnualLeaveDays>>();
     for (const staff of staffList) {
-      map.set(staff.id, computeAnnualLeaveDays(staff, asOf, staffList.length));
+      map.set(staff.id, computeAnnualLeaveDays(staff, year, asOf, staffList.length));
     }
     return map;
   }, [staffList, year]);
@@ -129,9 +129,11 @@ export default function LeaveGrantsPanel() {
                 <td className="px-4 py-2.5 text-gray-700">
                   <span
                     title={
-                      accrual.isFirstYearSpecial
-                        ? `입사 후 개근 ${accrual.days}개월차 특례 (최대 11일)`
-                        : `근속 ${accrual.tenureYears}년차 (기본 15일 + 가산 ${accrual.days - 15}일)`
+                      accrual.regularDays === 0
+                        ? `입사 후 개근 특례 ${accrual.specialDays}일 (최대 11일)`
+                        : accrual.specialDays > 0
+                          ? `1년 미만 특례 잔여 ${accrual.specialDays}일 + 근속 ${accrual.tenureYears}년차 정기 ${accrual.regularDays}일(기본 15일 + 가산 ${accrual.regularDays - 15}일)`
+                          : `근속 ${accrual.tenureYears}년차 (기본 15일 + 가산 ${accrual.regularDays - 15}일)`
                     }
                     className="cursor-help border-b border-dashed border-gray-300"
                   >

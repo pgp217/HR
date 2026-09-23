@@ -13,7 +13,7 @@ import {
 } from "@/lib/mock-data";
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
 import { accrualAsOfDateForYear, computeAnnualLeaveDays } from "@/lib/leave-accrual";
-import type { LeavePromotionNotice } from "@/lib/leave-promotion";
+import type { LeavePromotionNotice, PromotionBatchNotice, UnderOneYearBatchId } from "@/lib/leave-promotion";
 
 const todayISO = toISODate(today());
 const CURRENT_APPROVER = "박기표";
@@ -55,6 +55,19 @@ interface LeaveContextValue {
   sendFirstNotice: (staffId: string) => void;
   recordEmployeeResponse: (staffId: string, startDate: string, endDate: string) => void;
   sendSecondNotice: (staffId: string, startDate: string, endDate: string) => void;
+  sendBatchFirstNotice: (staffId: string, batch: UnderOneYearBatchId) => void;
+  recordBatchEmployeeResponse: (
+    staffId: string,
+    batch: UnderOneYearBatchId,
+    startDate: string,
+    endDate: string
+  ) => void;
+  sendBatchSecondNotice: (
+    staffId: string,
+    batch: UnderOneYearBatchId,
+    startDate: string,
+    endDate: string
+  ) => void;
 }
 
 const LeaveContext = createContext<LeaveContextValue | null>(null);
@@ -72,7 +85,7 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     const map = new Map<string, number>();
     const asOf = accrualAsOfDateForYear(CURRENT_YEAR, todayISO);
     for (const staff of staffList) {
-      const accrued = computeAnnualLeaveDays(staff, asOf, staffList.length).days;
+      const accrued = computeAnnualLeaveDays(staff, CURRENT_YEAR, asOf, staffList.length).days;
       const g = grants.find((gr) => gr.staffId === staff.id && gr.year === CURRENT_YEAR);
       map.set(staff.id, accrued + (g?.carryover ?? 0) + (g?.adjustment ?? 0));
     }
@@ -254,6 +267,68 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  function updatePromotionBatchNotice(
+    staffId: string,
+    batch: UnderOneYearBatchId,
+    patch: Partial<PromotionBatchNotice>
+  ) {
+    const key = batch === "A" ? "underOneYearBatchA" : "underOneYearBatchB";
+    setPromotionNotices((prev) => {
+      const idx = prev.findIndex((n) => n.staffId === staffId && n.year === CURRENT_YEAR);
+      if (idx === -1) {
+        return [...prev, { staffId, year: CURRENT_YEAR, [key]: patch }];
+      }
+      const next = [...prev];
+      const existingBatch = next[idx][key] ?? {};
+      next[idx] = { ...next[idx], [key]: { ...existingBatch, ...patch } };
+      return next;
+    });
+  }
+
+  function sendBatchFirstNotice(staffId: string, batch: UnderOneYearBatchId) {
+    updatePromotionBatchNotice(staffId, batch, { firstNoticeAt: todayISO });
+  }
+
+  function recordBatchEmployeeResponse(
+    staffId: string,
+    batch: UnderOneYearBatchId,
+    startDate: string,
+    endDate: string
+  ) {
+    const leaveRequestId = createLinkedLeaveRequest(
+      staffId,
+      startDate,
+      endDate,
+      `연차 사용 촉진 (1년 미만 ${batch}묶음 - 근로자 지정)`
+    );
+    updatePromotionBatchNotice(staffId, batch, {
+      employeeSpecifiedAt: todayISO,
+      employeeSpecifiedStart: startDate,
+      employeeSpecifiedEnd: endDate,
+      leaveRequestId,
+    });
+  }
+
+  function sendBatchSecondNotice(
+    staffId: string,
+    batch: UnderOneYearBatchId,
+    startDate: string,
+    endDate: string
+  ) {
+    const leaveRequestId = createLinkedLeaveRequest(
+      staffId,
+      startDate,
+      endDate,
+      `연차 사용 촉진 (1년 미만 ${batch}묶음 - 2차 통보)`
+    );
+    updatePromotionBatchNotice(staffId, batch, {
+      secondNoticeAt: todayISO,
+      secondNoticeStart: startDate,
+      secondNoticeEnd: endDate,
+      secondLeaveRequestId: leaveRequestId,
+    });
+  }
+
   const value: LeaveContextValue = {
     requests,
     staffList,
@@ -275,6 +350,9 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     sendFirstNotice,
     recordEmployeeResponse,
     sendSecondNotice,
+    sendBatchFirstNotice,
+    recordBatchEmployeeResponse,
+    sendBatchSecondNotice,
   };
 
   return <LeaveContext.Provider value={value}>{children}</LeaveContext.Provider>;
