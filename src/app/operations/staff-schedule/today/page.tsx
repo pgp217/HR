@@ -123,15 +123,14 @@ export default function TodayPage() {
           <h3 className="text-sm font-semibold text-gray-900">직원별 오늘 운영 상태</h3>
         </div>
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-left text-xs whitespace-nowrap text-gray-500">
-              <th className="px-4 py-2 font-medium">직원</th>
-              <th className="px-4 py-2 font-medium">역할</th>
-              <th className="px-4 py-2 font-medium">근무</th>
-              <th className="px-4 py-2 font-medium">당직</th>
-              <th className="px-4 py-2 font-medium">출장·외출</th>
-              <th className="px-4 py-2 font-medium">휴가</th>
+              <th className="w-[18%] px-4 py-2 font-medium">직원</th>
+              <th className="w-[12%] px-4 py-2 font-medium">역할</th>
+              <th className="w-[30%] px-4 py-2 font-medium">근무</th>
+              <th className="w-[15%] px-4 py-2 font-medium">당직</th>
+              <th className="w-[25%] px-4 py-2 font-medium">출장·외출</th>
             </tr>
           </thead>
           <tbody>
@@ -177,7 +176,6 @@ export default function TodayPage() {
                       <span className="text-gray-300">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-gray-700">{onLeave ? "휴가" : "-"}</td>
                 </tr>
               );
             })}
