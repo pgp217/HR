@@ -62,6 +62,16 @@ const stagePriority: Record<PromotionStage, number> = {
   대상아님: 5,
 };
 
+// "1차대기"(아직 촉구 기간이 열리기 전)는 내부적으로는 "완료"와 구분해
+// 계속 추적한다 — 나중에 실제 촉구·통보 이행 여부(완료)가 미사용 연차
+// 수당 지급 판단의 근거가 될 수 있어서다. 다만 화면에서는 "지금 당장
+// 촉구할 필요가 없는 상태"라는 의미로 두 상태를 같은 라벨("완료")로
+// 보여준다. 버튼 노출·정렬 우선순위 등 다른 로직은 실제 stage 값을
+// 그대로 쓰므로 이 매핑은 배지 표시에만 영향을 준다.
+function displayStage(stage: PromotionStage): PromotionStage {
+  return stage === "1차대기" ? "완료" : stage;
+}
+
 interface NoticeFields {
   stage: PromotionStage;
   deadline: DeadlineInfo | null;
@@ -281,8 +291,10 @@ export default function LeavePromotionPanel() {
                   <td className="px-4 py-2.5 text-gray-700">{remaining}일</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[stage]}`}>
-                        {stage}
+                      <span
+                        className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[displayStage(stage)]}`}
+                      >
+                        {displayStage(stage)}
                       </span>
                       {deadline && (
                         <span
