@@ -1,11 +1,12 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from "react";
-import type { Staff, TripRecord, TripType } from "@/lib/types";
+import type { Staff, TripRecord, TripStatus, TripType } from "@/lib/types";
 import { staffList, initialTripRecords } from "@/lib/mock-data";
 import { isWithinRange, toISODate, today } from "@/lib/date";
 
 const todayISO = toISODate(today());
+const CURRENT_APPROVER = "박기표";
 
 export interface NewTripInput {
   staffId: string;
@@ -26,7 +27,9 @@ interface TripContextValue {
   todayOutingCount: number;
   thisWeekCount: number;
   unreachableCount: number;
+  pendingCount: number;
   handleCreate: (input: NewTripInput) => void;
+  handleDecision: (id: string, status: TripStatus) => void;
   handleDelete: (id: string) => void;
 }
 
@@ -39,15 +42,17 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const todayTripCount = useMemo(
     () =>
-      records.filter((r) => r.type === "출장" && isWithinRange(todayISO, r.startDate, r.endDate))
-        .length,
+      records.filter(
+        (r) => r.type === "출장" && r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
+      ).length,
     [records]
   );
 
   const todayOutingCount = useMemo(
     () =>
-      records.filter((r) => r.type === "외출" && isWithinRange(todayISO, r.startDate, r.endDate))
-        .length,
+      records.filter(
+        (r) => r.type === "외출" && r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
+      ).length,
     [records]
   );
 
@@ -58,13 +63,27 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const unreachableCount = useMemo(() => records.filter((r) => !r.reachable).length, [records]);
 
+  const pendingCount = useMemo(
+    () => records.filter((r) => r.status === "승인대기").length,
+    [records]
+  );
+
   function handleCreate(input: NewTripInput) {
     const record: TripRecord = {
       ...input,
       id: `trip-${Date.now()}`,
+      status: "승인대기",
       requestedAt: todayISO,
     };
     setRecords((prev) => [record, ...prev]);
+  }
+
+  function handleDecision(id: string, status: TripStatus) {
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status, decidedAt: todayISO, decidedBy: CURRENT_APPROVER } : r
+      )
+    );
   }
 
   function handleDelete(id: string) {
@@ -79,7 +98,9 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     todayOutingCount,
     thisWeekCount,
     unreachableCount,
+    pendingCount,
     handleCreate,
+    handleDecision,
     handleDelete,
   };
 

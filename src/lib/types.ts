@@ -57,9 +57,10 @@ export interface LeaveRequest {
 
 export type TripType = "출장" | "외출";
 
-// 출장·외출은 휴가와 달리 승인 절차 없이 등록 즉시 보고 완료로 처리한다
-// (실무에서도 사전 승인보다는 사후 공유 성격이 강한 항목이라 워크플로를
-// 단순하게 유지).
+export type TripStatus = "승인대기" | "승인" | "반려";
+
+// 휴가·연차와 동일하게 승인/반려/삭제로 관리한다 — 등록하면 승인대기
+// 상태로 들어가고, 승인권자가 승인/반려를 처리한다.
 export interface TripRecord {
   id: string;
   staffId: string;
@@ -70,5 +71,8 @@ export interface TripRecord {
   endTime?: string; // HH:mm, 외출에서만 사용
   purpose: string; // 목적지·사유
   reachable: boolean; // 연락 가능 여부
+  status: TripStatus;
   requestedAt: string; // ISO date
+  decidedAt?: string; // ISO date
+  decidedBy?: string;
 }

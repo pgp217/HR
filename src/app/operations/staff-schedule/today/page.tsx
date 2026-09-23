@@ -22,7 +22,9 @@ export default function TodayPage() {
   const dutyStaffId = assignments[todayISO];
   const staffingConflict = checkStaffingOnDate(todayISO, requests, staffList);
 
-  const todayTrips = tripRecords.filter((r) => isWithinRange(todayISO, r.startDate, r.endDate));
+  const todayTrips = tripRecords.filter(
+    (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
+  );
   const tripByStaffId = new Map(todayTrips.map((r) => [r.staffId, r]));
 
   // "현재 인원": 오늘 일정이 아니라 지금 이 순간 자리에 있는지를 본다.
@@ -39,7 +41,9 @@ export default function TodayPage() {
       (r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate)
     );
     const tripToday = new Map(
-      tripRecords.filter((r) => isWithinRange(todayISO, r.startDate, r.endDate)).map((r) => [r.staffId, r])
+      tripRecords
+        .filter((r) => r.status === "승인" && isWithinRange(todayISO, r.startDate, r.endDate))
+        .map((r) => [r.staffId, r])
     );
 
     const currentlyAbsentIds = new Set<string>();

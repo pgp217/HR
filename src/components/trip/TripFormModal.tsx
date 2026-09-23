@@ -60,7 +60,7 @@ export default function TripFormModal({ staffList, defaultDate, onSubmit, onClos
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-gray-900">출장·외출 등록</h3>
+          <h3 className="text-base font-semibold text-gray-900">출장·외출 신청 등록</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             ✕
           </button>
@@ -186,7 +186,7 @@ export default function TripFormModal({ staffList, defaultDate, onSubmit, onClos
               type="submit"
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              등록
+              신청 등록
             </button>
           </div>
         </form>

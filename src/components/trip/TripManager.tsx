@@ -17,7 +17,9 @@ export default function TripManager() {
     todayOutingCount,
     thisWeekCount,
     unreachableCount,
+    pendingCount,
     handleCreate,
+    handleDecision,
     handleDelete,
   } = useTrip();
 
@@ -34,11 +36,11 @@ export default function TripManager() {
           onClick={() => setIsFormOpen(true)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          + 출장·외출 등록
+          + 출장·외출 신청 등록
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-500">🧳 오늘 출장</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{todayTripCount}명</p>
@@ -48,8 +50,12 @@ export default function TripManager() {
           <p className="mt-2 text-2xl font-bold text-gray-900">{todayOutingCount}명</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-500">📅 이번주 등록 건수</p>
+          <p className="text-sm text-gray-500">📅 이번주 신청 건수</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{thisWeekCount}건</p>
+        </div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-700">승인 대기</p>
+          <p className="mt-2 text-2xl font-bold text-amber-700">{pendingCount}건</p>
         </div>
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-600">⚠️ 연락 어려움</p>
@@ -57,9 +63,9 @@ export default function TripManager() {
         </div>
       </div>
 
-      <TripCalendar records={records} staffById={staffById} />
+      <TripCalendar records={records.filter((r) => r.status === "승인")} staffById={staffById} />
 
-      <TripList records={records} staffById={staffById} onDelete={handleDelete} />
+      <TripList records={records} staffById={staffById} onDecision={handleDecision} onDelete={handleDelete} />
 
       {isFormOpen && (
         <TripFormModal
