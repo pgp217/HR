@@ -25,6 +25,8 @@ export interface DutyPolicy {
   weekendIncluded: boolean; // 당직 - 주말 포함
   holidayIncluded: boolean; // 당직 - 공휴일 포함 (공휴일 데이터 연동 전까지는 저장만 됨)
   autoExcludeOnLeave: boolean; // 휴가자 자동 제외
+  excludeEntryLevel: boolean; // 사원 제외 (자동 배정 대상에서 제외)
+  excludeDeptHead: boolean; // 부장 제외 (자동 배정 대상에서 제외)
   selectionDeadline: string; // 당일 선택 마감 (HH:mm)
 }
 

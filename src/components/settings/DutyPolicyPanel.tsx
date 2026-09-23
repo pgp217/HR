@@ -59,6 +59,22 @@ export default function DutyPolicyPanel() {
           />
           휴가자 자동 제외
         </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={draft.excludeEntryLevel}
+            onChange={(e) => setDraft((d) => ({ ...d, excludeEntryLevel: e.target.checked }))}
+          />
+          사원 제외
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={draft.excludeDeptHead}
+            onChange={(e) => setDraft((d) => ({ ...d, excludeDeptHead: e.target.checked }))}
+          />
+          부장 제외
+        </label>
       </div>
 
       <div className="mt-4 flex items-center gap-2">

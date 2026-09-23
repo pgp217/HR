@@ -59,6 +59,8 @@ export const initialDutyPolicy: DutyPolicy = {
   weekendIncluded: true,
   holidayIncluded: true,
   autoExcludeOnLeave: true,
+  excludeEntryLevel: false,
+  excludeDeptHead: false,
   selectionDeadline: "18:00",
 };
 

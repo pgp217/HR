@@ -1,9 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import { initialDutyPolicy, initialDutyRotation } from "@/lib/mock-data";
+import { initialDutyPolicy, initialDutyRotation, staffList } from "@/lib/mock-data";
 import type { DutyPolicy, DutyRotationEntry } from "@/lib/types";
 import { toISODate, today } from "@/lib/date";
+
+const staffById = new Map(staffList.map((s) => [s.id, s]));
 
 export interface AssignResult {
   ok: boolean;
@@ -94,8 +96,12 @@ export function DutyProvider({ children }: { children: React.ReactNode }) {
             dateISO >= entry.excludeStart &&
             dateISO <= entry.excludeEnd;
           const onLeave = policy.autoExcludeOnLeave && opts?.isOnLeave?.(entry.staffId, dateISO);
+          const role = staffById.get(entry.staffId)?.role;
+          const roleExcluded =
+            (policy.excludeEntryLevel && role === "사원") ||
+            (policy.excludeDeptHead && role === "부장");
 
-          if (excluded || onLeave) continue;
+          if (excluded || onLeave || roleExcluded) continue;
 
           next[dateISO] = entry.staffId;
           break;
