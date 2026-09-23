@@ -3,8 +3,15 @@
 import { useMemo, useState } from "react";
 import { useLeave } from "./LeaveContext";
 import { CURRENT_YEAR } from "@/lib/mock-data";
-import { toISODate, today } from "@/lib/date";
+import { formatKoreanDate, toISODate, today } from "@/lib/date";
 import { getPromotionStage, type PromotionStage } from "@/lib/leave-promotion";
+
+function formatRange(start?: string, end?: string): string {
+  if (!start || !end) return "-";
+  return start === end
+    ? formatKoreanDate(start)
+    : `${formatKoreanDate(start)} ~ ${formatKoreanDate(end)}`;
+}
 
 const todayISO = toISODate(today());
 
@@ -37,7 +44,9 @@ export default function LeavePromotionPanel() {
   } = useLeave();
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [draftDates, setDraftDates] = useState("");
+  const [draftStart, setDraftStart] = useState("");
+  const [draftEnd, setDraftEnd] = useState("");
+  const [draftError, setDraftError] = useState("");
 
   const noticeByStaffId = useMemo(
     () => new Map(promotionNotices.map((n) => [n.staffId, n])),
@@ -62,16 +71,32 @@ export default function LeavePromotionPanel() {
 
   function startEditing(staffId: string) {
     setEditingId(staffId);
-    setDraftDates("");
+    setDraftStart("");
+    setDraftEnd("");
+    setDraftError("");
+  }
+
+  function validateDraft(): boolean {
+    if (!draftStart || !draftEnd) {
+      setDraftError("시작일과 종료일을 모두 입력해주세요.");
+      return false;
+    }
+    if (draftEnd < draftStart) {
+      setDraftError("종료일은 시작일보다 빠를 수 없습니다.");
+      return false;
+    }
+    return true;
   }
 
   function submitResponse(staffId: string) {
-    recordEmployeeResponse(staffId, draftDates.trim() || "-");
+    if (!validateDraft()) return;
+    recordEmployeeResponse(staffId, draftStart, draftEnd);
     setEditingId(null);
   }
 
   function submitSecondNotice(staffId: string) {
-    sendSecondNotice(staffId, draftDates.trim() || "-");
+    if (!validateDraft()) return;
+    sendSecondNotice(staffId, draftStart, draftEnd);
     setEditingId(null);
   }
 
@@ -82,6 +107,7 @@ export default function LeavePromotionPanel() {
           <h3 className="text-sm font-semibold text-gray-900">연차 사용 촉진 (근로기준법 제61조)</h3>
           <p className="mt-0.5 text-xs text-gray-400">
             1차 촉구(7/1~7/10) → 근로자 응답(10일 이내) → 미응답 시 2차 통보(~11/1) 순으로 진행합니다.
+            근로자 응답·2차 통보를 기록하면 지정한 기간이 휴가 신청 목록에 승인 상태로 자동 등록됩니다.
           </p>
         </div>
         {actionNeededCount > 0 && (
@@ -124,17 +150,23 @@ export default function LeavePromotionPanel() {
                       {stage}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-gray-500">{notice?.firstNoticeAt ?? "-"}</td>
+                  <td className="px-4 py-2.5 text-gray-500">
+                    {notice?.firstNoticeAt ? formatKoreanDate(notice.firstNoticeAt) : "-"}
+                  </td>
                   <td className="px-4 py-2.5 text-gray-500">
                     {notice?.employeeSpecifiedAt ? (
-                      <span title={notice.employeeSpecifiedAt}>{notice.employeeSpecifiedDates}</span>
+                      <span title={`통보일: ${formatKoreanDate(notice.employeeSpecifiedAt)}`}>
+                        {formatRange(notice.employeeSpecifiedStart, notice.employeeSpecifiedEnd)}
+                      </span>
                     ) : (
                       "-"
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-gray-500">
                     {notice?.secondNoticeAt ? (
-                      <span title={notice.secondNoticeAt}>{notice.secondNoticeDates}</span>
+                      <span title={`통보일: ${formatKoreanDate(notice.secondNoticeAt)}`}>
+                        {formatRange(notice.secondNoticeStart, notice.secondNoticeEnd)}
+                      </span>
                     ) : (
                       "-"
                     )}
@@ -150,30 +182,36 @@ export default function LeavePromotionPanel() {
                     )}
                     {stage === "근로자응답대기" &&
                       (isEditing ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            autoFocus
-                            value={draftDates}
-                            onChange={(e) => setDraftDates(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") submitResponse(staff.id);
-                              if (e.key === "Escape") setEditingId(null);
-                            }}
-                            placeholder="예: 12/22~12/24"
-                            className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
-                          />
-                          <button
-                            onClick={() => submitResponse(staff.id)}
-                            className="rounded bg-blue-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
-                          >
-                            저장
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
-                          >
-                            취소
-                          </button>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              autoFocus
+                              type="date"
+                              value={draftStart}
+                              onChange={(e) => setDraftStart(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={draftEnd}
+                              onChange={(e) => setDraftEnd(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <button
+                              onClick={() => submitResponse(staff.id)}
+                              className="rounded bg-blue-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                            >
+                              저장
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                            >
+                              취소
+                            </button>
+                          </div>
+                          {draftError && <p className="text-[11px] text-red-600">{draftError}</p>}
                         </div>
                       ) : (
                         <button
@@ -185,30 +223,36 @@ export default function LeavePromotionPanel() {
                       ))}
                     {stage === "2차대상" &&
                       (isEditing ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            autoFocus
-                            value={draftDates}
-                            onChange={(e) => setDraftDates(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") submitSecondNotice(staff.id);
-                              if (e.key === "Escape") setEditingId(null);
-                            }}
-                            placeholder="예: 12/21~12/23"
-                            className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
-                          />
-                          <button
-                            onClick={() => submitSecondNotice(staff.id)}
-                            className="rounded bg-red-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-red-700"
-                          >
-                            발송
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
-                          >
-                            취소
-                          </button>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <input
+                              autoFocus
+                              type="date"
+                              value={draftStart}
+                              onChange={(e) => setDraftStart(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={draftEnd}
+                              onChange={(e) => setDraftEnd(e.target.value)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                            />
+                            <button
+                              onClick={() => submitSecondNotice(staff.id)}
+                              className="rounded bg-red-600 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-red-700"
+                            >
+                              발송
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                            >
+                              취소
+                            </button>
+                          </div>
+                          {draftError && <p className="text-[11px] text-red-600">{draftError}</p>}
                         </div>
                       ) : (
                         <button

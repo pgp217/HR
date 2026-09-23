@@ -2423,7 +2423,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-04`,
     firstNoticeDays: 8,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-05`,
-    employeeSpecifiedDates: "12/25~12/27",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-25`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-27`,
   },
   {
     staffId: "s20",
@@ -2431,7 +2432,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-05`,
     firstNoticeDays: 12,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-14`,
-    employeeSpecifiedDates: "12/21~12/22",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-21`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-22`,
   },
   {
     staffId: "s18",
@@ -2439,7 +2441,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-04`,
     firstNoticeDays: 19,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-05`,
-    employeeSpecifiedDates: "12/17~12/19",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-17`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-19`,
   },
   {
     staffId: "s19",
@@ -2447,7 +2450,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-05`,
     firstNoticeDays: 10,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-11`,
-    employeeSpecifiedDates: "12/19~12/21",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-19`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-21`,
   },
   {
     staffId: "s21",
@@ -2455,7 +2459,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 13,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-08`,
-    employeeSpecifiedDates: "12/25~12/26",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-25`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-26`,
   },
   {
     staffId: "s29",
@@ -2463,7 +2468,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 7,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-09`,
-    employeeSpecifiedDates: "12/23~12/24",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-23`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-24`,
   },
   {
     staffId: "s8",
@@ -2471,7 +2477,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-09`,
     firstNoticeDays: 12,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-12`,
-    employeeSpecifiedDates: "12/17~12/19",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-17`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-19`,
   },
   {
     staffId: "s9",
@@ -2479,7 +2486,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-08`,
     firstNoticeDays: 11,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-13`,
-    employeeSpecifiedDates: "12/18~12/19",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-18`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-19`,
   },
   {
     staffId: "s22",
@@ -2487,7 +2495,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 17,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-05`,
-    employeeSpecifiedDates: "12/21~12/22",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-21`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-22`,
   },
   {
     staffId: "s5",
@@ -2495,7 +2504,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-04`,
     firstNoticeDays: 13,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-13`,
-    employeeSpecifiedDates: "12/19~12/21",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-19`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-21`,
   },
   {
     staffId: "s11",
@@ -2503,7 +2513,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 5,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-11`,
-    employeeSpecifiedDates: "12/20~12/21",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-20`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-21`,
   },
   {
     staffId: "s23",
@@ -2511,7 +2522,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-01`,
     firstNoticeDays: 8,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-09`,
-    employeeSpecifiedDates: "12/15~12/16",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-15`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-16`,
   },
   {
     staffId: "s28",
@@ -2519,7 +2531,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 5,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-10`,
-    employeeSpecifiedDates: "12/20~12/21",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-20`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-21`,
   },
   {
     staffId: "s15",
@@ -2527,7 +2540,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-06`,
     firstNoticeDays: 7,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-10`,
-    employeeSpecifiedDates: "12/23~12/25",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-23`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-25`,
   },
   {
     staffId: "s12",
@@ -2535,7 +2549,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-09`,
     firstNoticeDays: 8,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-15`,
-    employeeSpecifiedDates: "12/16~12/18",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-16`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-18`,
   },
   {
     staffId: "s3",
@@ -2543,7 +2558,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-04`,
     firstNoticeDays: 13,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-10`,
-    employeeSpecifiedDates: "12/24~12/25",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-24`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-25`,
   },
   {
     staffId: "s4",
@@ -2551,7 +2567,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-06`,
     firstNoticeDays: 14,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-11`,
-    employeeSpecifiedDates: "12/18~12/19",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-18`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-19`,
   },
   {
     staffId: "s1",
@@ -2559,7 +2576,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-05`,
     firstNoticeDays: 17,
     employeeSpecifiedAt: `${CURRENT_YEAR}-07-10`,
-    employeeSpecifiedDates: "12/22~12/23",
+    employeeSpecifiedStart: `${CURRENT_YEAR}-12-22`,
+    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-23`,
   },
   {
     staffId: "s30",
@@ -2567,7 +2585,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-08`,
     firstNoticeDays: 8,
     secondNoticeAt: `${CURRENT_YEAR}-09-18`,
-    secondNoticeDates: "12/17~12/19 (사용자 지정)",
+    secondNoticeStart: `${CURRENT_YEAR}-12-17`,
+    secondNoticeEnd: `${CURRENT_YEAR}-12-19`,
   },
   {
     staffId: "s26",
@@ -2575,7 +2594,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-04`,
     firstNoticeDays: 13,
     secondNoticeAt: `${CURRENT_YEAR}-09-14`,
-    secondNoticeDates: "12/23~12/24 (사용자 지정)",
+    secondNoticeStart: `${CURRENT_YEAR}-12-23`,
+    secondNoticeEnd: `${CURRENT_YEAR}-12-24`,
   },
   {
     staffId: "s16",
@@ -2583,7 +2603,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-05`,
     firstNoticeDays: 18,
     secondNoticeAt: `${CURRENT_YEAR}-09-10`,
-    secondNoticeDates: "12/24~12/26 (사용자 지정)",
+    secondNoticeStart: `${CURRENT_YEAR}-12-24`,
+    secondNoticeEnd: `${CURRENT_YEAR}-12-26`,
   },
   {
     staffId: "s7",
@@ -2591,7 +2612,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 16,
     secondNoticeAt: `${CURRENT_YEAR}-08-13`,
-    secondNoticeDates: "12/22~12/24 (사용자 지정)",
+    secondNoticeStart: `${CURRENT_YEAR}-12-22`,
+    secondNoticeEnd: `${CURRENT_YEAR}-12-24`,
   },
   {
     staffId: "s2",
@@ -2599,7 +2621,8 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     firstNoticeAt: `${CURRENT_YEAR}-07-03`,
     firstNoticeDays: 17,
     secondNoticeAt: `${CURRENT_YEAR}-09-09`,
-    secondNoticeDates: "12/23~12/24 (사용자 지정)",
+    secondNoticeStart: `${CURRENT_YEAR}-12-23`,
+    secondNoticeEnd: `${CURRENT_YEAR}-12-24`,
   },
   {
     staffId: "s10",

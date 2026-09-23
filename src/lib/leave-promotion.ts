@@ -18,9 +18,13 @@ export interface LeavePromotionNotice {
   firstNoticeAt?: string; // ISO date, 1차 촉구 발송일
   firstNoticeDays?: number; // 1차 촉구 시점의 잔여 일수(통보 내용 기록용)
   employeeSpecifiedAt?: string; // ISO date, 근로자가 사용 시기를 통보한 날짜
-  employeeSpecifiedDates?: string; // 근로자가 통보한 사용 시기(자유 텍스트)
+  employeeSpecifiedStart?: string; // ISO date, 근로자가 지정한 사용 시작일
+  employeeSpecifiedEnd?: string; // ISO date, 근로자가 지정한 사용 종료일
+  employeeLeaveRequestId?: string; // 위 지정 시기로 자동 등록된 휴가 신청 id
   secondNoticeAt?: string; // ISO date, 2차 통보 발송일
-  secondNoticeDates?: string; // 사용자가 지정한 사용 시기(자유 텍스트)
+  secondNoticeStart?: string; // ISO date, 사용자가 지정한 사용 시작일
+  secondNoticeEnd?: string; // ISO date, 사용자가 지정한 사용 종료일
+  secondNoticeLeaveRequestId?: string; // 위 지정 시기로 자동 등록된 휴가 신청 id
 }
 
 export type PromotionStage =

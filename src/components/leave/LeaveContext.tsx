@@ -7,6 +7,8 @@ import {
   initialLeaveGrants,
   initialLeaveRequests,
   initialLeavePromotionNotices,
+  emergencyContacts,
+  handoverPartners,
   CURRENT_YEAR,
 } from "@/lib/mock-data";
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
@@ -51,8 +53,8 @@ interface LeaveContextValue {
     patch: Partial<Pick<LeaveGrant, "carryover" | "adjustment">>
   ) => void;
   sendFirstNotice: (staffId: string) => void;
-  recordEmployeeResponse: (staffId: string, specifiedDates: string) => void;
-  sendSecondNotice: (staffId: string, specifiedDates: string) => void;
+  recordEmployeeResponse: (staffId: string, startDate: string, endDate: string) => void;
+  sendSecondNotice: (staffId: string, startDate: string, endDate: string) => void;
 }
 
 const LeaveContext = createContext<LeaveContextValue | null>(null);
@@ -201,15 +203,55 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     updatePromotionNotice(staffId, { firstNoticeAt: todayISO, firstNoticeDays: remaining });
   }
 
-  function recordEmployeeResponse(staffId: string, specifiedDates: string) {
+  function createLinkedLeaveRequest(staffId: string, startDate: string, endDate: string, reason: string): string {
+    const id = `promo-${staffId}-${CURRENT_YEAR}-${Date.now()}`;
+    const newRequest: LeaveRequest = {
+      id,
+      staffId,
+      type: "연차",
+      startDate,
+      endDate,
+      days: daysBetweenInclusive(startDate, endDate),
+      reason,
+      handoverStaffId: handoverPartners[staffId] ?? "",
+      emergencyContact: emergencyContacts[staffId] ?? "",
+      status: "승인",
+      requestedAt: todayISO,
+      decidedAt: todayISO,
+      decidedBy: CURRENT_APPROVER,
+    };
+    setRequests((prev) => [newRequest, ...prev]);
+    return id;
+  }
+
+  function recordEmployeeResponse(staffId: string, startDate: string, endDate: string) {
+    const leaveRequestId = createLinkedLeaveRequest(
+      staffId,
+      startDate,
+      endDate,
+      "연차 사용 촉진 (근로자 지정)"
+    );
     updatePromotionNotice(staffId, {
       employeeSpecifiedAt: todayISO,
-      employeeSpecifiedDates: specifiedDates,
+      employeeSpecifiedStart: startDate,
+      employeeSpecifiedEnd: endDate,
+      employeeLeaveRequestId: leaveRequestId,
     });
   }
 
-  function sendSecondNotice(staffId: string, specifiedDates: string) {
-    updatePromotionNotice(staffId, { secondNoticeAt: todayISO, secondNoticeDates: specifiedDates });
+  function sendSecondNotice(staffId: string, startDate: string, endDate: string) {
+    const leaveRequestId = createLinkedLeaveRequest(
+      staffId,
+      startDate,
+      endDate,
+      "연차 사용 촉진 (2차 통보 - 사용자 지정)"
+    );
+    updatePromotionNotice(staffId, {
+      secondNoticeAt: todayISO,
+      secondNoticeStart: startDate,
+      secondNoticeEnd: endDate,
+      secondNoticeLeaveRequestId: leaveRequestId,
+    });
   }
 
   const value: LeaveContextValue = {
