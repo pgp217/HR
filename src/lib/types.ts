@@ -1,4 +1,4 @@
-export type StaffRole = "담당자" | "서무";
+export type StaffRole = "사원" | "주임" | "대리" | "과장" | "차장" | "부장";
 
 export interface Staff {
   id: string;

@@ -1,14 +1,42 @@
 import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff, TripRecord } from "./types";
 import { addDays, today } from "./date";
 
+// 직급 체계: 사원(근속 0~1년) → 주임(2~3) → 대리(4~5) → 과장(6~8)
+// → 차장(9~12) → 부장(13년~). 인원 구성: 부장 2 / 차장 3 / 과장 5 /
+// 대리 10 / 주임 6 / 사원 4 = 총 30명.
 export const staffList: Staff[] = [
-  { id: "s1", name: "김민준", role: "담당자", joinedAt: "2021-03-02" },
-  { id: "s2", name: "이서연", role: "담당자", joinedAt: "2020-07-14" },
-  { id: "s3", name: "박도윤", role: "담당자", joinedAt: "2022-01-10" },
-  { id: "s4", name: "최지우", role: "담당자", joinedAt: "2019-11-25" },
-  { id: "s5", name: "정하은", role: "담당자", joinedAt: "2023-05-08" },
-  { id: "s6", name: "한소율", role: "서무", joinedAt: "2022-09-19" },
-  { id: "s7", name: "오채원", role: "서무", joinedAt: "2024-02-01" },
+  // 기존 7명 (joinedAt은 그대로, 직급만 근속연수에 맞게 부여)
+  { id: "s1", name: "김민준", role: "대리", joinedAt: "2021-03-02" },
+  { id: "s2", name: "이서연", role: "과장", joinedAt: "2020-07-14" },
+  { id: "s3", name: "박도윤", role: "대리", joinedAt: "2022-01-10" },
+  { id: "s4", name: "최지우", role: "과장", joinedAt: "2019-11-25" },
+  { id: "s5", name: "정하은", role: "주임", joinedAt: "2023-05-08" },
+  { id: "s6", name: "한소율", role: "대리", joinedAt: "2022-09-19" },
+  { id: "s7", name: "오채원", role: "주임", joinedAt: "2024-02-01" },
+  // 신규 23명
+  { id: "s8", name: "서준영", role: "부장", joinedAt: "2011-04-12" },
+  { id: "s9", name: "김도현", role: "부장", joinedAt: "2008-02-20" },
+  { id: "s10", name: "이하은", role: "차장", joinedAt: "2017-06-15" },
+  { id: "s11", name: "박지훈", role: "차장", joinedAt: "2016-08-03" },
+  { id: "s12", name: "최수빈", role: "차장", joinedAt: "2014-01-27" },
+  { id: "s13", name: "정민재", role: "과장", joinedAt: "2020-05-19" },
+  { id: "s14", name: "강서율", role: "과장", joinedAt: "2019-09-10" },
+  { id: "s15", name: "조은서", role: "과장", joinedAt: "2018-03-30" },
+  { id: "s16", name: "윤태양", role: "대리", joinedAt: "2022-07-08" },
+  { id: "s17", name: "장예린", role: "대리", joinedAt: "2022-02-14" },
+  { id: "s18", name: "임현우", role: "대리", joinedAt: "2021-05-05" },
+  { id: "s19", name: "한지민", role: "대리", joinedAt: "2021-08-22" },
+  { id: "s20", name: "오세진", role: "대리", joinedAt: "2022-01-16" },
+  { id: "s21", name: "신유진", role: "대리", joinedAt: "2021-03-11" },
+  { id: "s22", name: "권민석", role: "대리", joinedAt: "2022-09-01" },
+  { id: "s23", name: "황수아", role: "주임", joinedAt: "2024-04-25" },
+  { id: "s24", name: "안준서", role: "주임", joinedAt: "2023-06-07" },
+  { id: "s25", name: "송지호", role: "주임", joinedAt: "2024-08-14" },
+  { id: "s26", name: "전예은", role: "주임", joinedAt: "2023-02-28" },
+  { id: "s27", name: "홍성민", role: "사원", joinedAt: "2026-03-01" },
+  { id: "s28", name: "유하늘", role: "사원", joinedAt: "2025-06-10" },
+  { id: "s29", name: "고은채", role: "사원", joinedAt: "2026-01-20" },
+  { id: "s30", name: "문재원", role: "사원", joinedAt: "2025-02-14" },
 ];
 
 const t = today();
@@ -40,6 +68,10 @@ export const emergencyContacts: Record<string, string> = {
   s6: "010-1234-5676",
   s7: "010-1234-5677",
 };
+// 신규 23명(s8~s30)은 순번 기반으로 생성
+for (let i = 8; i <= 30; i++) {
+  emergencyContacts[`s${i}`] = `010-2000-${String(i).padStart(4, "0")}`;
+}
 
 export const handoverPartners: Record<string, string> = {
   s1: "s3",
@@ -50,6 +82,11 @@ export const handoverPartners: Record<string, string> = {
   s6: "s7",
   s7: "s6",
 };
+// 신규 23명(s8~s30)은 원형으로 서로 인수인계자를 맡음 (s8→s9→...→s30→s8)
+for (let i = 8; i <= 30; i++) {
+  const nextId = i === 30 ? 8 : i + 1;
+  handoverPartners[`s${i}`] = `s${nextId}`;
+}
 
 export const initialLeaveRequests: LeaveRequest[] = [
   {
