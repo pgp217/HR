@@ -204,6 +204,12 @@ export function getDeadlineInfo(
 
 export type UnderOneYearBatchId = "A" | "B";
 
+/** 묶음별 대상 연차 일수(A: 최초 9개월 개근분, B: 10·11개월째 개근분). */
+export const UNDER_ONE_YEAR_BATCH_MAX_DAYS: Record<UnderOneYearBatchId, number> = {
+  A: 9,
+  B: 2,
+};
+
 /** 최초 1년의 근로기간이 끝나는 날(입사일 + 1년). */
 export function underOneYearUsageEnd(joinedAt: string): string {
   const [y, m, d] = joinedAt.split("-").map(Number);
