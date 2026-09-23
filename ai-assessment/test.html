@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 역량 검사</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>AI 역량 검사</h1>
+  <p class="lead">5개 영역, 30문항입니다 (약 10~15분). 모든 문항에 답한 뒤 <b>결과지 파일</b>을 내려받아 담당자에게 제출하세요.</p>
+
+  <form id="form" novalidate>
+    <section class="card">
+      <h2>응시자 정보</h2>
+      <div class="grid3">
+        <label class="field"><span>이름 *</span><input type="text" name="name" required autocomplete="name"></label>
+        <label class="field"><span>사번</span><input type="text" name="employee_id"></label>
+        <label class="field"><span>부서</span><input type="text" name="department"></label>
+      </div>
+    </section>
+
+    <div class="progress no-print">
+      <div class="muted"><span id="done">0</span> / <span id="count">0</span> 문항 응답</div>
+      <div class="bar"><i id="bar" style="width:0"></i></div>
+    </div>
+
+    <div id="sections"></div>
+
+    <div class="actions">
+      <button type="submit">제출하고 결과지 내려받기</button>
+      <span id="msg" class="error"></span>
+    </div>
+  </form>
+
+  <section id="finished" class="card" hidden>
+    <h2>제출 완료</h2>
+    <p>결과지 파일 <b id="filename"></b> 이(가) 내려받아졌습니다. 이 파일을 담당자에게 제출하거나 채점 페이지에 올려 주세요.</p>
+    <div class="actions">
+      <button type="button" id="again" class="secondary">결과지 다시 내려받기</button>
+    </div>
+  </section>
+</main>
+
+<script src="items.js"></script>
+<script src="sheet.js"></script>
+<script>
+(function () {
+  var def = AIQ_ITEMS;
+  var form = document.getElementById('form');
+  var sectionsEl = document.getElementById('sections');
+  var lastFile = null;
+  var qNo = 0;
+
+  document.getElementById('count').textContent = def.items.length;
+
+  def.domains.forEach(function (d) {
+    var sec = document.createElement('section');
+    sec.className = 'card';
+    sec.innerHTML = '<h2></h2><p class="muted"></p>';
+    sec.querySelector('h2').textContent = d.id + '. ' + d.name;
+    sec.querySelector('p').textContent = d.desc;
+
+    def.items.filter(function (it) { return it.domain === d.id; }).forEach(function (it) {
+      qNo++;
+      var q = document.createElement('div');
+      q.className = 'q';
+      q.id = 'q-' + it.id;
+      var text = document.createElement('div');
+      text.className = 'q-text';
+      text.innerHTML = '<span class="q-no"></span>';
+      text.querySelector('.q-no').textContent = qNo + '.';
+      text.appendChild(document.createTextNode(it.text));
+      q.appendChild(text);
+
+      var opts = document.createElement('div');
+      opts.className = 'opts' + (it.type === 'likert' ? ' likert' : '');
+      var labels = it.type === 'likert' ? def.likertLabels : it.options;
+      labels.forEach(function (lbl, i) {
+        var l = document.createElement('label');
+        var input = document.createElement('input');
+        input.type = 'radio';
+        input.name = it.id;
+        input.value = i + 1;
+        l.appendChild(input);
+        var span = document.createElement('span');
+        span.textContent = it.type === 'likert' ? lbl : (i + 1) + ') ' + lbl;
+        l.appendChild(span);
+        opts.appendChild(l);
+      });
+      q.appendChild(opts);
+      sec.appendChild(q);
+    });
+    sectionsEl.appendChild(sec);
+  });
+
+  function answers() {
+    var r = {};
+    def.items.forEach(function (it) {
+      var c = form.querySelector('input[name="' + it.id + '"]:checked');
+      r[it.id] = c ? Number(c.value) : null;
+    });
+    return r;
+  }
+
+  function updateProgress() {
+    var a = answers();
+    var n = def.items.filter(function (it) { return a[it.id] != null; }).length;
+    document.getElementById('done').textContent = n;
+    document.getElementById('bar').style.width = (n / def.items.length * 100) + '%';
+  }
+
+  form.addEventListener('change', function (e) {
+    if (e.target.type === 'radio') {
+      document.getElementById('q-' + e.target.name).classList.remove('missing');
+      updateProgress();
+      if (!form.querySelector('.q.missing')) document.getElementById('msg').textContent = '';
+    }
+  });
+
+  // 현지 시간대 오프셋을 포함한 ISO 시각 (예: 2026-09-23T10:00:00+09:00)
+  function localIso(d) {
+    function p(n) { return String(n).padStart(2, '0'); }
+    var off = -d.getTimezoneOffset();
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) +
+      (off >= 0 ? '+' : '-') + p(Math.floor(Math.abs(off) / 60)) + ':' + p(Math.abs(off) % 60);
+  }
+
+  function download(file) {
+    var blob = new Blob([file.content], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('msg');
+    var name = form.elements.name.value.trim();
+    var a = answers();
+    var missing = def.items.filter(function (it) { return a[it.id] == null; });
+
+    missing.forEach(function (it) { document.getElementById('q-' + it.id).classList.add('missing'); });
+    if (!name) {
+      msg.textContent = '이름을 입력해 주세요.';
+      form.elements.name.focus();
+      return;
+    }
+    if (missing.length) {
+      msg.textContent = '응답하지 않은 문항이 ' + missing.length + '개 있습니다.';
+      document.getElementById('q-' + missing[0].id).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    msg.textContent = '';
+
+    var now = new Date();
+    var meta = {
+      name: name,
+      employee_id: form.elements.employee_id.value.trim(),
+      department: form.elements.department.value.trim(),
+      submitted_at: localIso(now)
+    };
+    var safeName = name.replace(/[\\/:*?"<>|\s]+/g, '_');
+    lastFile = {
+      name: 'AI역량검사_결과지_' + safeName + '_' + meta.submitted_at.slice(0, 10) + '.csv',
+      content: AIQ_SHEET.buildResultSheet(def, meta, a)
+    };
+    download(lastFile);
+
+    form.hidden = true;
+    document.getElementById('filename').textContent = lastFile.name;
+    document.getElementById('finished').hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  document.getElementById('again').addEventListener('click', function () { download(lastFile); });
+})();
+</script>
+</body>
+</html>

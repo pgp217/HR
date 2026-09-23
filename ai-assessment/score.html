@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 역량 채점</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>AI 역량 검사 채점</h1>
+  <p class="lead no-print">응시자가 제출한 결과지 파일(.csv)을 올리면 영역별 점수와 총점이 계산됩니다. 여러 파일을 한꺼번에 올릴 수 있습니다.</p>
+
+  <section class="card no-print">
+    <label id="drop" class="drop">
+      <input id="file" type="file" accept=".csv,text/csv" multiple hidden>
+      결과지 파일을 여기에 끌어다 놓거나 <b>클릭해서 선택</b>하세요
+    </label>
+  </section>
+
+  <section id="summary" class="card" hidden>
+    <h2>전체 요약 (<span id="sum-count"></span>명)</h2>
+    <div class="table-wrap"><table id="sum-table"></table></div>
+    <div class="actions no-print" style="margin-top:12px">
+      <button type="button" id="sum-csv">요약 CSV 내려받기</button>
+      <button type="button" class="secondary" onclick="window.print()">인쇄 / PDF 저장</button>
+    </div>
+  </section>
+
+  <div id="results"></div>
+</main>
+
+<script src="items.js"></script>
+<script src="sheet.js"></script>
+<script src="scoring.js"></script>
+<script>
+(function () {
+  var def = AIQ_ITEMS;
+  var resultsEl = document.getElementById('results');
+  var drop = document.getElementById('drop');
+  var fileInput = document.getElementById('file');
+  var scored = [];
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function readFile(file) {
+    return new Promise(function (resolve) {
+      var r = new FileReader();
+      r.onload = function () { resolve({ file: file, text: r.result }); };
+      r.onerror = function () { resolve({ file: file, text: null }); };
+      r.readAsText(file, 'utf-8');
+    });
+  }
+
+  function scoreText(fileName, text) {
+    if (text == null) return { fileName: fileName, ok: false, errors: ['파일을 읽지 못했습니다.'] };
+    try {
+      var res = AIQ_SCORING.score(def, AIQ_SHEET.readResultSheet(text));
+      res.fileName = fileName;
+      return res;
+    } catch (err) {
+      return { fileName: fileName, ok: false, errors: [err.message] };
+    }
+  }
+
+  function renderReport(r) {
+    var card = el('section', 'card');
+    if (!r.ok) {
+      card.appendChild(el('h2', 'error', r.fileName + ' — 채점할 수 없음'));
+      var ul = el('ul', 'error');
+      r.errors.slice(0, 10).forEach(function (m) { ul.appendChild(el('li', null, m)); });
+      if (r.errors.length > 10) ul.appendChild(el('li', null, '외 ' + (r.errors.length - 10) + '건'));
+      card.appendChild(ul);
+      return card;
+    }
+
+    var m = r.meta;
+    card.appendChild(el('h2', null, 'AI 역량 검사 결과 — ' + (m.name || '(이름 없음)')));
+    card.appendChild(el('div', 'muted', [m.employee_id, m.department, m.submitted_at && '제출 ' + m.submitted_at.slice(0, 10)]
+      .filter(Boolean).join(' · ')));
+
+    var total = el('div', 'total');
+    total.appendChild(el('span', 'num', r.total.toFixed(1)));
+    total.appendChild(el('span', 'muted', '/ 100'));
+    total.appendChild(el('span', 'badge', r.level));
+    card.appendChild(total);
+    card.appendChild(el('p', null, r.levelDesc +
+      (r.strength ? ' 강점 영역은 ' + r.strength + ', 보완이 필요한 영역은 ' + r.weakness + '입니다.' : '')));
+
+    r.domains.forEach(function (d) {
+      var box = el('div', 'domain');
+      var head = el('div', 'domain-head');
+      head.appendChild(el('span', null, d.id + '. ' + d.name));
+      head.appendChild(el('span', null, d.score.toFixed(1) + '점 · ' + d.level));
+      box.appendChild(head);
+      var bar = el('div', 'bar');
+      var fill = el('i');
+      fill.style.width = d.score + '%';
+      bar.appendChild(fill);
+      box.appendChild(bar);
+      box.appendChild(el('div', 'muted', '자기평가 ' + d.selfScore.toFixed(1) + '점 · 문제풀이 ' +
+        d.correct + '/' + d.choiceCount + ' 정답' + (d.wrongItems.length ? ' (오답: ' + d.wrongItems.join(', ') + ')' : '')));
+      if (d.gapNote) box.appendChild(el('div', 'note', '⚠ ' + d.gapNote));
+      if (d.level === '입문' || d.level === '기초' || d.name === r.weakness) box.appendChild(el('div', null, '추천: ' + d.tip));
+      card.appendChild(box);
+    });
+    return card;
+  }
+
+  function renderSummary() {
+    var ok = scored.filter(function (r) { return r.ok; });
+    var box = document.getElementById('summary');
+    box.hidden = ok.length < 2;
+    if (box.hidden) return;
+    document.getElementById('sum-count').textContent = ok.length;
+    var table = document.getElementById('sum-table');
+    table.innerHTML = '';
+    var head = el('tr');
+    ['이름', '부서', '총점', '수준'].concat(def.domains.map(function (d) { return d.name; }))
+      .forEach(function (h) { head.appendChild(el('th', null, h)); });
+    table.appendChild(head);
+    ok.forEach(function (r) {
+      var tr = el('tr');
+      [r.meta.name, r.meta.department, r.total.toFixed(1), r.level]
+        .concat(r.domains.map(function (d) { return d.score.toFixed(1); }))
+        .forEach(function (v) { tr.appendChild(el('td', null, v)); });
+      table.appendChild(tr);
+    });
+  }
+
+  function handleFiles(files) {
+    Promise.all(Array.prototype.map.call(files, readFile)).then(function (list) {
+      list.forEach(function (x) {
+        var r = scoreText(x.file.name, x.text);
+        scored.push(r);
+        resultsEl.appendChild(renderReport(r));
+      });
+      renderSummary();
+    });
+  }
+
+  document.getElementById('sum-csv').addEventListener('click', function () {
+    var cell = AIQ_SHEET.csvCell;
+    var rows = [['이름', '사번', '부서', '제출일', '총점', '수준'].concat(def.domains.map(function (d) { return d.name; }))];
+    scored.filter(function (r) { return r.ok; }).forEach(function (r) {
+      rows.push([r.meta.name, r.meta.employee_id, r.meta.department, r.meta.submitted_at.slice(0, 10), r.total, r.level]
+        .concat(r.domains.map(function (d) { return d.score; })));
+    });
+    var csv = '﻿' + rows.map(function (row) { return row.map(cell).join(','); }).join('\r\n') + '\r\n';
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'AI역량검사_요약.csv';
+    a.click();
+  });
+
+  fileInput.addEventListener('change', function () { handleFiles(fileInput.files); fileInput.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) { handleFiles(e.dataTransfer.files); });
+})();
+</script>
+</body>
+</html>
