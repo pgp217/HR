@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLeave } from "./LeaveContext";
 import { CURRENT_YEAR } from "@/lib/mock-data";
 import { formatKoreanDate, toISODate, today } from "@/lib/date";
-import { getPromotionStage, type PromotionStage } from "@/lib/leave-promotion";
+import { getPromotionStage, getDeadlineInfo, type PromotionStage } from "@/lib/leave-promotion";
 
 function formatRange(start?: string, end?: string): string {
   if (!start || !end) return "-";
@@ -59,10 +59,16 @@ export default function LeavePromotionPanel() {
         const remaining = remainingDaysByStaff.get(staff.id) ?? 0;
         const notice = noticeByStaffId.get(staff.id);
         const stage = getPromotionStage(todayISO, CURRENT_YEAR, remaining, notice);
-        return { staff, remaining, notice, stage };
+        const deadline = getDeadlineInfo(todayISO, CURRENT_YEAR, stage, notice);
+        return { staff, remaining, notice, stage, deadline };
       })
       .filter((r) => r.stage !== "대상아님")
-      .sort((a, b) => stagePriority[a.stage] - stagePriority[b.stage]);
+      .sort((a, b) => {
+        const p = stagePriority[a.stage] - stagePriority[b.stage];
+        if (p !== 0) return p;
+        if (a.deadline && b.deadline) return a.deadline.daysLeft - b.deadline.daysLeft;
+        return 0;
+      });
   }, [staffList, remainingDaysByStaff, noticeByStaffId]);
 
   const actionNeededCount = rows.filter(
@@ -138,7 +144,7 @@ export default function LeavePromotionPanel() {
                 </td>
               </tr>
             )}
-            {rows.map(({ staff, remaining, notice, stage }) => {
+            {rows.map(({ staff, remaining, notice, stage, deadline }) => {
               const isEditing = editingId === staff.id;
               return (
                 <tr key={staff.id} className="border-b border-gray-50 last:border-0">
@@ -146,9 +152,20 @@ export default function LeavePromotionPanel() {
                   <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
                   <td className="px-4 py-2.5 text-gray-700">{remaining}일</td>
                   <td className="px-4 py-2.5">
-                    <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[stage]}`}>
-                      {stage}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageStyles[stage]}`}>
+                        {stage}
+                      </span>
+                      {deadline && (
+                        <span
+                          className={`text-xs font-medium ${
+                            deadline.urgent ? "text-red-600" : "text-gray-400"
+                          }`}
+                        >
+                          {deadline.label}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-gray-500">
                     {notice?.firstNoticeAt ? formatKoreanDate(notice.firstNoticeAt) : "-"}

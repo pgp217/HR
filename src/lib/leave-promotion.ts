@@ -77,3 +77,51 @@ export function getPromotionStage(
   if (todayISO <= respondDeadline && todayISO < secondDeadline) return "근로자응답대기";
   return "2차대상";
 }
+
+// 두 ISO 날짜 사이의 일수 차(to - from). 음수면 from이 to보다 나중이라는
+// 뜻(이미 지남).
+function daysBetweenISO(fromISO: string, toISO: string): number {
+  const [fy, fm, fd] = fromISO.split("-").map(Number);
+  const [ty, tm, td] = toISO.split("-").map(Number);
+  const from = new Date(fy, fm - 1, fd);
+  const to = new Date(ty, tm - 1, td);
+  return Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+export const DUE_SOON_WINDOW_DAYS = 14;
+
+export interface DeadlineInfo {
+  label: string; // 예: "D-7", "기한 3일 경과"
+  daysLeft: number; // 음수면 이미 지남
+  urgent: boolean; // 14일 이내(경과 포함)로 임박했을 때
+}
+
+/**
+ * 현재 stage에서 다음으로 챙겨야 할 기한까지 며칠 남았는지 계산한다.
+ * "1차대상"이면 1차 촉구 기한(7/10), "근로자응답대기"면 근로자 응답
+ * 기한(1차 발송일+10일), "2차대상"이면 2차 통보 기한(11/1)을 기준으로
+ * 삼는다. 그 외 단계(완료/대상아님/1차대기)는 챙길 기한이 없으므로
+ * null을 반환한다.
+ */
+export function getDeadlineInfo(
+  todayISO: string,
+  year: number,
+  stage: PromotionStage,
+  notice: LeavePromotionNotice | undefined
+): DeadlineInfo | null {
+  let target: string | null = null;
+
+  if (stage === "1차대상") {
+    target = firstNoticeWindow(year).end;
+  } else if (stage === "근로자응답대기" && notice?.firstNoticeAt) {
+    target = addDaysToISO(notice.firstNoticeAt, 10);
+  } else if (stage === "2차대상") {
+    target = secondNoticeDeadline(year);
+  }
+
+  if (!target) return null;
+
+  const daysLeft = daysBetweenISO(todayISO, target);
+  const label = daysLeft >= 0 ? `D-${daysLeft}` : `기한 ${-daysLeft}일 경과`;
+  return { label, daysLeft, urgent: daysLeft <= DUE_SOON_WINDOW_DAYS };
+}
