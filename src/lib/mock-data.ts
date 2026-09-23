@@ -1496,7 +1496,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s5,
     emergencyContact: emergencyContacts.s5,
     status: "승인대기",
-    requestedAt: addDays(t, 20),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr95",
@@ -1509,8 +1509,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s26,
     emergencyContact: emergencyContacts.s26,
     status: "승인",
-    requestedAt: addDays(t, 23),
-    decidedAt: addDays(t, 26),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1524,7 +1524,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s16,
     emergencyContact: emergencyContacts.s16,
     status: "승인대기",
-    requestedAt: addDays(t, 21),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr97",
@@ -1537,8 +1537,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s19,
     emergencyContact: emergencyContacts.s19,
     status: "승인",
-    requestedAt: addDays(t, 38),
-    decidedAt: addDays(t, 39),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1552,8 +1552,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s12,
     emergencyContact: emergencyContacts.s12,
     status: "승인",
-    requestedAt: addDays(t, 51),
-    decidedAt: addDays(t, 53),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1567,8 +1567,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s8,
     emergencyContact: emergencyContacts.s8,
     status: "승인",
-    requestedAt: addDays(t, 46),
-    decidedAt: addDays(t, 47),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1582,7 +1582,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s28,
     emergencyContact: emergencyContacts.s28,
     status: "승인대기",
-    requestedAt: addDays(t, 55),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr101",
@@ -1595,7 +1595,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s1,
     emergencyContact: emergencyContacts.s1,
     status: "승인대기",
-    requestedAt: addDays(t, 56),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr102",
@@ -1608,7 +1608,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s18,
     emergencyContact: emergencyContacts.s18,
     status: "승인대기",
-    requestedAt: addDays(t, 71),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr103",
@@ -1621,8 +1621,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s22,
     emergencyContact: emergencyContacts.s22,
     status: "승인",
-    requestedAt: addDays(t, 77),
-    decidedAt: addDays(t, 78),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1636,8 +1636,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s6,
     emergencyContact: emergencyContacts.s6,
     status: "승인",
-    requestedAt: addDays(t, 93),
-    decidedAt: addDays(t, 96),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1651,7 +1651,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s16,
     emergencyContact: emergencyContacts.s16,
     status: "승인대기",
-    requestedAt: addDays(t, 90),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr106",
@@ -1664,8 +1664,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s10,
     emergencyContact: emergencyContacts.s10,
     status: "승인",
-    requestedAt: addDays(t, 96),
-    decidedAt: addDays(t, 98),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1679,8 +1679,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s12,
     emergencyContact: emergencyContacts.s12,
     status: "승인",
-    requestedAt: addDays(t, 102),
-    decidedAt: addDays(t, 103),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1694,7 +1694,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s24,
     emergencyContact: emergencyContacts.s24,
     status: "승인대기",
-    requestedAt: addDays(t, 100),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr109",
@@ -1707,7 +1707,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s1,
     emergencyContact: emergencyContacts.s1,
     status: "승인대기",
-    requestedAt: addDays(t, 108),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr110",
@@ -1720,7 +1720,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s26,
     emergencyContact: emergencyContacts.s26,
     status: "승인대기",
-    requestedAt: addDays(t, 116),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr111",
@@ -1733,8 +1733,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s14,
     emergencyContact: emergencyContacts.s14,
     status: "승인",
-    requestedAt: addDays(t, 127),
-    decidedAt: addDays(t, 128),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1748,8 +1748,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s11,
     emergencyContact: emergencyContacts.s11,
     status: "승인",
-    requestedAt: addDays(t, 127),
-    decidedAt: addDays(t, 128),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1763,7 +1763,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s20,
     emergencyContact: emergencyContacts.s20,
     status: "승인대기",
-    requestedAt: addDays(t, 137),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr114",
@@ -1776,7 +1776,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s24,
     emergencyContact: emergencyContacts.s24,
     status: "승인대기",
-    requestedAt: addDays(t, 139),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr115",
@@ -1789,8 +1789,8 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s29,
     emergencyContact: emergencyContacts.s29,
     status: "승인",
-    requestedAt: addDays(t, 141),
-    decidedAt: addDays(t, 144),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1804,7 +1804,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s27,
     emergencyContact: emergencyContacts.s27,
     status: "승인대기",
-    requestedAt: addDays(t, 147),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "lr117",
@@ -1817,7 +1817,7 @@ export const initialLeaveRequests: LeaveRequest[] = [
     handoverStaffId: handoverPartners.s18,
     emergencyContact: emergencyContacts.s18,
     status: "승인대기",
-    requestedAt: addDays(t, 153),
+    requestedAt: addDays(t, 0),
   },
 ];
 
@@ -1832,7 +1832,7 @@ export const initialTripRecords: TripRecord[] = [
     reachable: true,
     status: "승인",
     requestedAt: addDays(t, 0),
-    decidedAt: addDays(t, 2),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1876,7 +1876,7 @@ export const initialTripRecords: TripRecord[] = [
     reachable: true,
     status: "승인",
     requestedAt: addDays(t, -1),
-    decidedAt: addDays(t, 1),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -1919,7 +1919,7 @@ export const initialTripRecords: TripRecord[] = [
     reachable: false,
     status: "승인",
     requestedAt: addDays(t, -1),
-    decidedAt: addDays(t, 1),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2261,8 +2261,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "세미나 참석",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 36),
-    decidedAt: addDays(t, 37),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2276,8 +2276,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "거래처 미팅",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 37),
-    decidedAt: addDays(t, 39),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2291,8 +2291,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "관공서 방문",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 47),
-    decidedAt: addDays(t, 48),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2304,8 +2304,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "고객사 방문",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 55),
-    decidedAt: addDays(t, 57),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2319,8 +2319,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "외부 교육",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 62),
-    decidedAt: addDays(t, 62),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2332,8 +2332,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "세미나 참석",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 61),
-    decidedAt: addDays(t, 64),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2347,8 +2347,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "거래처 미팅",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 64),
-    decidedAt: addDays(t, 66),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2360,7 +2360,7 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "대전 협력사 미팅",
     reachable: true,
     status: "승인대기",
-    requestedAt: addDays(t, 100),
+    requestedAt: addDays(t, 0),
   },
   {
     id: "tr39",
@@ -2371,8 +2371,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "본사 임원 회의",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 105),
-    decidedAt: addDays(t, 105),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2386,8 +2386,8 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "관공서 방문",
     reachable: true,
     status: "승인",
-    requestedAt: addDays(t, 109),
-    decidedAt: addDays(t, 110),
+    requestedAt: addDays(t, 0),
+    decidedAt: addDays(t, 0),
     decidedBy: "박기표",
   },
   {
@@ -2401,6 +2401,6 @@ export const initialTripRecords: TripRecord[] = [
     purpose: "거래처 미팅",
     reachable: true,
     status: "승인대기",
-    requestedAt: addDays(t, 115),
+    requestedAt: addDays(t, 0),
   },
 ];

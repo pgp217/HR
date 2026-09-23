@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { LeaveRequest, LeaveStatus, Staff } from "@/lib/types";
-import { formatKoreanDate } from "@/lib/date";
+import { formatKoreanDate, toISODate, today } from "@/lib/date";
 import { formatLeaveTypeLabel } from "@/lib/leave-display";
 import { compareStaffSeniority } from "@/lib/staff-order";
 
@@ -22,6 +22,15 @@ const statusStyles: Record<LeaveStatus, string> = {
   반려: "bg-red-50 text-red-700",
 };
 
+const todayISO = toISODate(today());
+
+// 오늘로부터 며칠 떨어져 있는지(과거는 음수)를 구한다 — "전체(오늘 순)"
+// 모드에서 이 값의 절댓값이 작은 순으로 정렬해 오늘이 항상 맨 위로
+// 오게 한다.
+function dayDistanceFromToday(dateISO: string): number {
+  return Math.round((new Date(dateISO).getTime() - new Date(todayISO).getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default function RequestList({
   requests,
   staffById,
@@ -33,16 +42,55 @@ export default function RequestList({
   const [editingReasonId, setEditingReasonId] = useState<string | null>(null);
   const [draftReason, setDraftReason] = useState("");
 
+  const now = today();
+  const [viewMode, setViewMode] = useState<"all" | "month">("all");
+  const [navYear, setNavYear] = useState(now.getFullYear());
+  const [navMonth, setNavMonth] = useState(now.getMonth());
+
+  function goToPrevMonth() {
+    if (navMonth === 0) {
+      setNavYear((y) => y - 1);
+      setNavMonth(11);
+    } else {
+      setNavMonth((m) => m - 1);
+    }
+  }
+
+  function goToNextMonth() {
+    if (navMonth === 11) {
+      setNavYear((y) => y + 1);
+      setNavMonth(0);
+    } else {
+      setNavMonth((m) => m + 1);
+    }
+  }
+
+  function seniorityCompare(a: LeaveRequest, b: LeaveRequest): number {
+    const staffA = staffById.get(a.staffId);
+    const staffB = staffById.get(b.staffId);
+    if (staffA && staffB) {
+      const cmp = compareStaffSeniority(staffA, staffB);
+      if (cmp !== 0) return cmp;
+    }
+    return a.requestedAt < b.requestedAt ? 1 : -1;
+  }
+
   const filtered = requests
     .filter((r) => (filter === "전체" ? true : r.status === filter))
+    .filter((r) => {
+      if (viewMode !== "month") return true;
+      const [y, m] = r.startDate.split("-").map(Number);
+      return y === navYear && m === navMonth + 1;
+    })
     .sort((a, b) => {
-      const staffA = staffById.get(a.staffId);
-      const staffB = staffById.get(b.staffId);
-      if (staffA && staffB) {
-        const cmp = compareStaffSeniority(staffA, staffB);
-        if (cmp !== 0) return cmp;
+      if (viewMode === "month") {
+        if (a.startDate !== b.startDate) return a.startDate < b.startDate ? -1 : 1;
+        return seniorityCompare(a, b);
       }
-      return a.requestedAt < b.requestedAt ? 1 : -1;
+      const da = Math.abs(dayDistanceFromToday(a.startDate));
+      const db = Math.abs(dayDistanceFromToday(b.startDate));
+      if (da !== db) return da - db;
+      return seniorityCompare(a, b);
     });
 
   function handleDeleteClick(req: LeaveRequest, staffName: string) {
@@ -81,6 +129,43 @@ export default function RequestList({
             </button>
           ))}
         </div>
+      </div>
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setViewMode("all")}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+              viewMode === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            전체 (오늘 순)
+          </button>
+          <button
+            onClick={() => setViewMode("month")}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+              viewMode === "month"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            월별 보기
+          </button>
+        </div>
+        {viewMode === "month" && (
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={goToPrevMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+              ‹
+            </button>
+            <span className="w-20 text-center font-medium text-gray-700">
+              {navYear}년 {navMonth + 1}월
+            </span>
+            <button onClick={goToNextMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+              ›
+            </button>
+          </div>
+        )}
       </div>
       <div className="overflow-x-auto">
       <table className="w-full text-sm">
