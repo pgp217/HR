@@ -1,6 +1,7 @@
 import type { DutyPolicy, DutyRotationEntry, LeaveGrant, LeaveRequest, Staff, TripRecord } from "./types";
 import { addDays, today } from "./date";
 import { compareStaffSeniority } from "./staff-order";
+import type { LeavePromotionNotice } from "./leave-promotion";
 
 // 직급 체계: 사원(근속 0~1년) → 주임(2~3) → 대리(4~5) → 과장(6~8)
 // → 차장(9~12) → 부장(13년~). 인원 구성: 부장 2 / 차장 3 / 과장 5 /
@@ -2402,5 +2403,78 @@ export const initialTripRecords: TripRecord[] = [
     reachable: true,
     status: "승인대기",
     requestedAt: addDays(t, 0),
+  },
+];
+
+// 연차 사용 촉진(근로기준법 제61조) 진행 상태 시드 — 1차 촉구/근로자
+// 응답/2차 통보의 각 단계를 골고루 보여주기 위한 예시 데이터. 목록에
+// 없는 나머지 직원은 아직 1차 촉구를 보내지 않은 상태(1차대상)로
+// 표시된다.
+export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
+  {
+    // 근로자가 1차 촉구를 받고 기한 내 사용 시기를 통보 → 완료
+    staffId: "s2",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-03`,
+    firstNoticeDays: 12,
+    employeeSpecifiedAt: `${CURRENT_YEAR}-07-09`,
+    employeeSpecifiedDates: "12/22~12/24",
+  },
+  {
+    staffId: "s15",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-05`,
+    firstNoticeDays: 9,
+    employeeSpecifiedAt: `${CURRENT_YEAR}-07-11`,
+    employeeSpecifiedDates: "12/28~12/29",
+  },
+  {
+    // 근로자 미응답 → 2차 통보까지 완료
+    staffId: "s9",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-02`,
+    firstNoticeDays: 14,
+    secondNoticeAt: `${CURRENT_YEAR}-09-10`,
+    secondNoticeDates: "12/21~12/23 (사용자 지정)",
+  },
+  {
+    staffId: "s21",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-07`,
+    firstNoticeDays: 8,
+    secondNoticeAt: `${CURRENT_YEAR}-09-05`,
+    secondNoticeDates: "12/29~12/30 (사용자 지정)",
+  },
+  {
+    // 최근 1차 촉구 발송, 근로자 응답 대기 중(10일 이내)
+    staffId: "s6",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-09-18`,
+    firstNoticeDays: 11,
+  },
+  {
+    staffId: "s18",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-09-20`,
+    firstNoticeDays: 7,
+  },
+  {
+    // 1차 촉구 후 근로자 미응답, 응답 기한(10일) 초과 → 2차 통보 필요
+    staffId: "s3",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-04`,
+    firstNoticeDays: 10,
+  },
+  {
+    staffId: "s12",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-06`,
+    firstNoticeDays: 13,
+  },
+  {
+    staffId: "s24",
+    year: CURRENT_YEAR,
+    firstNoticeAt: `${CURRENT_YEAR}-07-09`,
+    firstNoticeDays: 6,
   },
 ];

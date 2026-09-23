@@ -2,9 +2,16 @@
 
 import { createContext, useContext, useMemo, useState } from "react";
 import type { LeaveGrant, LeaveRequest, LeaveStatus, LeaveType, Staff } from "@/lib/types";
-import { staffList, initialLeaveGrants, initialLeaveRequests, CURRENT_YEAR } from "@/lib/mock-data";
+import {
+  staffList,
+  initialLeaveGrants,
+  initialLeaveRequests,
+  initialLeavePromotionNotices,
+  CURRENT_YEAR,
+} from "@/lib/mock-data";
 import { daysBetweenInclusive, isWithinRange, toISODate, today } from "@/lib/date";
 import { accrualAsOfDateForYear, computeAnnualLeaveDays } from "@/lib/leave-accrual";
+import type { LeavePromotionNotice } from "@/lib/leave-promotion";
 
 const todayISO = toISODate(today());
 const CURRENT_APPROVER = "박기표";
@@ -28,6 +35,8 @@ interface LeaveContextValue {
   grants: LeaveGrant[];
   grantedDaysByStaff: Map<string, number>;
   usedDaysByStaff: Map<string, number>;
+  remainingDaysByStaff: Map<string, number>;
+  promotionNotices: LeavePromotionNotice[];
   todayOnLeaveCount: number;
   pendingCount: number;
   thisMonthUsedDays: number;
@@ -41,6 +50,9 @@ interface LeaveContextValue {
     year: number,
     patch: Partial<Pick<LeaveGrant, "carryover" | "adjustment">>
   ) => void;
+  sendFirstNotice: (staffId: string) => void;
+  recordEmployeeResponse: (staffId: string, specifiedDates: string) => void;
+  sendSecondNotice: (staffId: string, specifiedDates: string) => void;
 }
 
 const LeaveContext = createContext<LeaveContextValue | null>(null);
@@ -48,6 +60,9 @@ const LeaveContext = createContext<LeaveContextValue | null>(null);
 export function LeaveProvider({ children }: { children: React.ReactNode }) {
   const [requests, setRequests] = useState<LeaveRequest[]>(initialLeaveRequests);
   const [grants, setGrants] = useState<LeaveGrant[]>(initialLeaveGrants);
+  const [promotionNotices, setPromotionNotices] = useState<LeavePromotionNotice[]>(
+    initialLeavePromotionNotices
+  );
 
   const staffById = useMemo(() => new Map(staffList.map((s) => [s.id, s])), []);
 
@@ -67,10 +82,21 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     for (const staff of staffList) map.set(staff.id, 0);
     for (const req of requests) {
       if (req.status !== "승인") continue;
+      if (new Date(req.startDate).getFullYear() !== CURRENT_YEAR) continue;
       map.set(req.staffId, (map.get(req.staffId) ?? 0) + req.days);
     }
     return map;
   }, [requests]);
+
+  const remainingDaysByStaff = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const staff of staffList) {
+      const granted = grantedDaysByStaff.get(staff.id) ?? 0;
+      const used = usedDaysByStaff.get(staff.id) ?? 0;
+      map.set(staff.id, granted - used);
+    }
+    return map;
+  }, [grantedDaysByStaff, usedDaysByStaff]);
 
   const todayOnLeaveCount = useMemo(
     () =>
@@ -158,6 +184,34 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  function updatePromotionNotice(staffId: string, patch: Partial<LeavePromotionNotice>) {
+    setPromotionNotices((prev) => {
+      const idx = prev.findIndex((n) => n.staffId === staffId && n.year === CURRENT_YEAR);
+      if (idx === -1) {
+        return [...prev, { staffId, year: CURRENT_YEAR, ...patch }];
+      }
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...patch };
+      return next;
+    });
+  }
+
+  function sendFirstNotice(staffId: string) {
+    const remaining = remainingDaysByStaff.get(staffId) ?? 0;
+    updatePromotionNotice(staffId, { firstNoticeAt: todayISO, firstNoticeDays: remaining });
+  }
+
+  function recordEmployeeResponse(staffId: string, specifiedDates: string) {
+    updatePromotionNotice(staffId, {
+      employeeSpecifiedAt: todayISO,
+      employeeSpecifiedDates: specifiedDates,
+    });
+  }
+
+  function sendSecondNotice(staffId: string, specifiedDates: string) {
+    updatePromotionNotice(staffId, { secondNoticeAt: todayISO, secondNoticeDates: specifiedDates });
+  }
+
   const value: LeaveContextValue = {
     requests,
     staffList,
@@ -165,6 +219,8 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     grants,
     grantedDaysByStaff,
     usedDaysByStaff,
+    remainingDaysByStaff,
+    promotionNotices,
     todayOnLeaveCount,
     pendingCount,
     thisMonthUsedDays,
@@ -174,6 +230,9 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     handleDelete,
     handleUpdateReason,
     updateGrant,
+    sendFirstNotice,
+    recordEmployeeResponse,
+    sendSecondNotice,
   };
 
   return <LeaveContext.Provider value={value}>{children}</LeaveContext.Provider>;
