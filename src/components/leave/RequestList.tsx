@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { LeaveRequest, LeaveStatus, Staff } from "@/lib/types";
 import { formatKoreanDate, toISODate, today } from "@/lib/date";
-import { formatLeaveTypeLabel } from "@/lib/leave-display";
+import { formatLeaveTypeParts } from "@/lib/leave-display";
 import { compareStaffSeniority } from "@/lib/staff-order";
 
 interface Props {
@@ -172,7 +172,7 @@ export default function RequestList({
         <thead>
           <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
             <th className="px-4 py-2 font-medium">직원</th>
-            <th className="px-4 py-2 font-medium">종류</th>
+            <th className="w-24 px-4 py-2 font-medium">종류</th>
             <th className="px-4 py-2 font-medium">기간</th>
             <th className="px-4 py-2 font-medium">일수</th>
             <th className="px-4 py-2 font-medium">사유</th>
@@ -193,11 +193,13 @@ export default function RequestList({
           {filtered.map((req) => {
             const staff = staffById.get(req.staffId);
             const sameDay = req.startDate === req.endDate;
+            const { label: leaveTypeLabel, time: leaveTypeTime } = formatLeaveTypeParts(req.type);
             return (
               <tr key={req.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{staff?.name ?? "-"}</td>
-                <td className="whitespace-nowrap px-4 py-2.5 text-xs text-gray-700">
-                  {formatLeaveTypeLabel(req.type)}
+                <td className="px-4 py-2.5 text-gray-700">
+                  <div>{leaveTypeLabel}</div>
+                  {leaveTypeTime && <div className="whitespace-nowrap">({leaveTypeTime})</div>}
                 </td>
                 <td className="px-4 py-2.5 text-gray-700">
                   {sameDay
