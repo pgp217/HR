@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { label: "인재 DB 등록", href: "/recruiting/talent-db" },
   { label: "채용 대시보드", href: "/recruiting/dashboard" },
+  { label: "면접 관리", href: "/recruiting/interviews" },
   { label: "입사자 온보딩", href: "/recruiting/onboarding" },
 ];
 

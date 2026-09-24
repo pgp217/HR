@@ -28,6 +28,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "인재 DB 등록", href: "/recruiting/talent-db", icon: "🗂️" },
       { label: "채용 대시보드", href: "/recruiting/dashboard", icon: "📊" },
+      { label: "면접 관리", href: "/recruiting/interviews", icon: "🎤" },
       { label: "입사자 온보딩", href: "/recruiting/onboarding", icon: "🧾" },
     ],
   },
