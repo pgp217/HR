@@ -6,6 +6,7 @@ import { DESIRED_ROLES } from "@/lib/recruit-options";
 import type { RecruitStage } from "@/lib/recruit-types";
 import { toISODate, today } from "@/lib/date";
 import { computeFitScore, FIT_SCORE_MAX, FAIL_THRESHOLD } from "@/lib/recruit-scoring";
+import CandidateDetailModal from "./CandidateDetailModal";
 
 const STAGES: RecruitStage[] = ["서류", "면접", "최종", "합격", "불합격"];
 
@@ -39,6 +40,7 @@ function fitScoreStyle(score: number) {
 export default function RecruitDashboard() {
   const { candidates, jobPostings, updateCandidateStage } = useRecruit();
   const [sortByScore, setSortByScore] = useState<"desc" | "asc" | null>(null);
+  const [detailCandidateId, setDetailCandidateId] = useState<string | null>(null);
 
   const todayISO = toISODate(today());
   const weekAgoISO = toISODate(new Date(today().getTime() - 7 * 24 * 60 * 60 * 1000));
@@ -271,7 +273,13 @@ export default function RecruitDashboard() {
               <tr key={c.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">
                   <div className="flex items-center gap-1.5">
-                    {c.name}
+                    <button
+                      onClick={() => setDetailCandidateId(c.id)}
+                      className="hover:underline"
+                      title="인재 DB 상세 정보 보기"
+                    >
+                      {c.name}
+                    </button>
                     {score.total < FAIL_THRESHOLD && (
                       <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-600">
                         탈락 대상
@@ -324,6 +332,19 @@ export default function RecruitDashboard() {
         </table>
         </div>
       </div>
+
+      {detailCandidateId &&
+        (() => {
+          const detailCandidate = candidates.find((c) => c.id === detailCandidateId);
+          if (!detailCandidate) return null;
+          return (
+            <CandidateDetailModal
+              candidate={detailCandidate}
+              jobPostings={jobPostings}
+              onClose={() => setDetailCandidateId(null)}
+            />
+          );
+        })()}
     </div>
   );
 }
