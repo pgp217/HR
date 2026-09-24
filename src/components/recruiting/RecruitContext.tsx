@@ -21,6 +21,7 @@ import {
 } from "@/lib/interview-scheduling";
 import type { InterviewNotice } from "@/lib/interview-noshow";
 import type { InterviewEvaluation } from "@/lib/interview-evaluation";
+import { seedInterviewAssignments, seedInterviewEvaluations } from "@/lib/recruit-seed-interviews";
 
 const CANDIDATES_KEY = "hr-recruit-candidates";
 const ONBOARDING_KEY = "hr-recruit-onboarding-tasks";
@@ -90,15 +91,27 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     const missingSeedTasks = seedOnboardingTasks.filter((t) => !storedTaskIds.has(t.id));
 
     const storedAssignments = readLocalStorage<InterviewAssignment[]>(INTERVIEW_ASSIGNMENTS_KEY, []);
+    const storedAssignmentCandidateIds = new Set(storedAssignments.map((a) => a.candidateId));
+    const missingSeedAssignments = seedInterviewAssignments.filter(
+      (a) => !storedAssignmentCandidateIds.has(a.candidateId)
+    );
+
     const storedNotices = readLocalStorage<InterviewNotice[]>(INTERVIEW_NOTICES_KEY, []);
+
     const storedEvaluations = readLocalStorage<InterviewEvaluation[]>(INTERVIEW_EVALUATIONS_KEY, []);
+    const storedEvaluationKeys = new Set(
+      storedEvaluations.map((e) => `${e.candidateId}::${e.interviewerName}`)
+    );
+    const missingSeedEvaluations = seedInterviewEvaluations.filter(
+      (e) => !storedEvaluationKeys.has(`${e.candidateId}::${e.interviewerName}`)
+    );
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandidates([...refreshedCandidates, ...missingSeedCandidates]);
     setOnboardingTasks([...storedTasks, ...missingSeedTasks]);
-    setInterviewAssignments(storedAssignments);
+    setInterviewAssignments([...storedAssignments, ...missingSeedAssignments]);
     setInterviewNotices(storedNotices);
-    setInterviewEvaluations(storedEvaluations);
+    setInterviewEvaluations([...storedEvaluations, ...missingSeedEvaluations]);
     setHydrated(true);
   }, []);
 

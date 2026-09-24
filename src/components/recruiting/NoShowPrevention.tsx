@@ -52,7 +52,10 @@ export default function NoShowPrevention() {
     return interviewAssignments
       .map((a) => {
         const candidate = candidateById.get(a.candidateId);
-        if (!candidate) return null;
+        // 전형 단계가 이미 "면접"을 지난(최종/합격/불합격) 과거 면접 이력은
+        // 노쇼 방지 대상이 아니다 — 이미 다 끝난 일정이라 D-day 배지가
+        // 의미 없어진다. 지금 응답 대기 중인 "면접" 단계만 보여준다.
+        if (!candidate || candidate.stage !== "면접") return null;
         const notice = noticeByCandidateId.get(a.candidateId);
         const stage = getNoticeStage(todayISO, a.date, notice);
         const deadline = getDeadlineInfo(todayISO, a.date);
