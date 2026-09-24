@@ -13,19 +13,23 @@ import { PINNED_TODAY_INTERVIEW_IDS, seedCandidates } from "@/lib/recruit-seed-c
 import { seedOnboardingTasks } from "@/lib/recruit-seed-onboarding";
 import { createOnboardingTasksForCandidate } from "@/lib/recruit-onboarding";
 import { readLocalStorage, writeLocalStorage } from "@/lib/storage";
+import { generateSchedule, type InterviewAssignment } from "@/lib/interview-scheduling";
 
 const CANDIDATES_KEY = "hr-recruit-candidates";
 const ONBOARDING_KEY = "hr-recruit-onboarding-tasks";
+const INTERVIEW_ASSIGNMENTS_KEY = "hr-recruit-interview-assignments";
 
 interface RecruitContextValue {
   candidates: Candidate[];
   jobPostings: JobPosting[];
   onboardingTasks: OnboardingTask[];
+  interviewAssignments: InterviewAssignment[];
   addCandidate: (input: CandidateInput) => void;
   updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
   toggleOnboardingTask: (taskId: string) => void;
   updateOnboardingTask: (taskId: string, patch: Partial<Pick<OnboardingTask, "assignee" | "dueDate">>) => void;
   ensureOnboardingTasks: (candidateId: string) => void;
+  runAutoAssign: (internalNames: string[], externalNames: string[]) => void;
 }
 
 const RecruitContext = createContext<RecruitContextValue | null>(null);
@@ -33,6 +37,7 @@ const RecruitContext = createContext<RecruitContextValue | null>(null);
 export function RecruitProvider({ children }: { children: React.ReactNode }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([]);
+  const [interviewAssignments, setInterviewAssignments] = useState<InterviewAssignment[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Read from localStorage only after mount so the server-rendered HTML and
@@ -60,9 +65,12 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     const storedTaskIds = new Set(storedTasks.map((t) => t.id));
     const missingSeedTasks = seedOnboardingTasks.filter((t) => !storedTaskIds.has(t.id));
 
+    const storedAssignments = readLocalStorage<InterviewAssignment[]>(INTERVIEW_ASSIGNMENTS_KEY, []);
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandidates([...refreshedCandidates, ...missingSeedCandidates]);
     setOnboardingTasks([...storedTasks, ...missingSeedTasks]);
+    setInterviewAssignments(storedAssignments);
     setHydrated(true);
   }, []);
 
@@ -73,6 +81,10 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated) writeLocalStorage(ONBOARDING_KEY, onboardingTasks);
   }, [onboardingTasks, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) writeLocalStorage(INTERVIEW_ASSIGNMENTS_KEY, interviewAssignments);
+  }, [interviewAssignments, hydrated]);
 
   function addCandidate(input: CandidateInput) {
     const candidate: Candidate = {
@@ -104,6 +116,22 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // 현재 "면접" 단계인 지원자 전원을 대상으로 패널 배정과 일정을 다시
+  // 계산해서 덮어쓴다. 후보자의 interviewAt도 배정 결과와 맞춰 갱신한다.
+  function runAutoAssign(internalNames: string[], externalNames: string[]) {
+    const targetIds = candidates.filter((c) => c.stage === "면접").map((c) => c.id);
+    const { assignments } = generateSchedule(targetIds, internalNames, externalNames);
+    setInterviewAssignments(assignments);
+    const assignmentByCandidateId = new Map(assignments.map((a) => [a.candidateId, a]));
+    setCandidates((prev) =>
+      prev.map((c) => {
+        const a = assignmentByCandidateId.get(c.id);
+        if (!a) return c;
+        return { ...c, interviewAt: `${a.date}T${a.startTime}` };
+      })
+    );
+  }
+
   function updateOnboardingTask(
     taskId: string,
     patch: Partial<Pick<OnboardingTask, "assignee" | "dueDate">>
@@ -115,11 +143,13 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     candidates,
     jobPostings,
     onboardingTasks,
+    interviewAssignments,
     addCandidate,
     updateCandidateStage,
     toggleOnboardingTask,
     updateOnboardingTask,
     ensureOnboardingTasks,
+    runAutoAssign,
   };
 
   return <RecruitContext.Provider value={value}>{children}</RecruitContext.Provider>;
