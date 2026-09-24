@@ -13,23 +13,36 @@ import { PINNED_TODAY_INTERVIEW_IDS, seedCandidates } from "@/lib/recruit-seed-c
 import { seedOnboardingTasks } from "@/lib/recruit-seed-onboarding";
 import { createOnboardingTasksForCandidate } from "@/lib/recruit-onboarding";
 import { readLocalStorage, writeLocalStorage } from "@/lib/storage";
-import { generateSchedule, type InterviewAssignment } from "@/lib/interview-scheduling";
+import {
+  generateSchedule,
+  removeAndCompactAssignment,
+  replaceAssignmentCandidate,
+  type InterviewAssignment,
+} from "@/lib/interview-scheduling";
+import type { InterviewNotice } from "@/lib/interview-noshow";
 
 const CANDIDATES_KEY = "hr-recruit-candidates";
 const ONBOARDING_KEY = "hr-recruit-onboarding-tasks";
 const INTERVIEW_ASSIGNMENTS_KEY = "hr-recruit-interview-assignments";
+const INTERVIEW_NOTICES_KEY = "hr-recruit-interview-notices";
 
 interface RecruitContextValue {
   candidates: Candidate[];
   jobPostings: JobPosting[];
   onboardingTasks: OnboardingTask[];
   interviewAssignments: InterviewAssignment[];
+  interviewNotices: InterviewNotice[];
   addCandidate: (input: CandidateInput) => void;
   updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
   toggleOnboardingTask: (taskId: string) => void;
   updateOnboardingTask: (taskId: string, patch: Partial<Pick<OnboardingTask, "assignee" | "dueDate">>) => void;
   ensureOnboardingTasks: (candidateId: string) => void;
   runAutoAssign: (internalNames: string[], externalNames: string[]) => void;
+  sendD3Notice: (candidateId: string) => void;
+  sendD1Notice: (candidateId: string) => void;
+  recordNoticeResponse: (candidateId: string) => void;
+  markNoShowAndReshuffle: (candidateId: string) => void;
+  reassignFromWaitlist: (riskyCandidateId: string, waitlistCandidateId: string) => void;
 }
 
 const RecruitContext = createContext<RecruitContextValue | null>(null);
@@ -38,6 +51,7 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([]);
   const [interviewAssignments, setInterviewAssignments] = useState<InterviewAssignment[]>([]);
+  const [interviewNotices, setInterviewNotices] = useState<InterviewNotice[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Read from localStorage only after mount so the server-rendered HTML and
@@ -66,11 +80,13 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     const missingSeedTasks = seedOnboardingTasks.filter((t) => !storedTaskIds.has(t.id));
 
     const storedAssignments = readLocalStorage<InterviewAssignment[]>(INTERVIEW_ASSIGNMENTS_KEY, []);
+    const storedNotices = readLocalStorage<InterviewNotice[]>(INTERVIEW_NOTICES_KEY, []);
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandidates([...refreshedCandidates, ...missingSeedCandidates]);
     setOnboardingTasks([...storedTasks, ...missingSeedTasks]);
     setInterviewAssignments(storedAssignments);
+    setInterviewNotices(storedNotices);
     setHydrated(true);
   }, []);
 
@@ -85,6 +101,10 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated) writeLocalStorage(INTERVIEW_ASSIGNMENTS_KEY, interviewAssignments);
   }, [interviewAssignments, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) writeLocalStorage(INTERVIEW_NOTICES_KEY, interviewNotices);
+  }, [interviewNotices, hydrated]);
 
   function addCandidate(input: CandidateInput) {
     const candidate: Candidate = {
@@ -132,6 +152,56 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  function updateNotice(candidateId: string, patch: Partial<InterviewNotice>) {
+    setInterviewNotices((prev) => {
+      const idx = prev.findIndex((n) => n.candidateId === candidateId);
+      if (idx === -1) return [...prev, { candidateId, ...patch }];
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...patch };
+      return next;
+    });
+  }
+
+  function sendD3Notice(candidateId: string) {
+    updateNotice(candidateId, { d3SentAt: new Date().toISOString() });
+  }
+
+  function sendD1Notice(candidateId: string) {
+    updateNotice(candidateId, { d1SentAt: new Date().toISOString() });
+  }
+
+  function recordNoticeResponse(candidateId: string) {
+    updateNotice(candidateId, { respondedAt: new Date().toISOString() });
+  }
+
+  // 결석 처리: 배정에서 빼고, 같은 패널·같은 날 뒤 순번들을 당겨 배정한다.
+  function markNoShowAndReshuffle(candidateId: string) {
+    setInterviewAssignments((prev) => removeAndCompactAssignment(prev, candidateId));
+  }
+
+  // 노쇼 위험 후보의 슬롯(패널·회의실·일시)을 대기명단 후보로 그대로
+  // 대체한다. 원래 후보는 "면접" 단계에 남지만 일정은 비워진다.
+  function reassignFromWaitlist(riskyCandidateId: string, waitlistCandidateId: string) {
+    const next = replaceAssignmentCandidate(interviewAssignments, riskyCandidateId, waitlistCandidateId);
+    const newAssignment = next.find((a) => a.candidateId === waitlistCandidateId);
+    setInterviewAssignments(next);
+    setCandidates((prev) =>
+      prev.map((c) => {
+        if (c.id === waitlistCandidateId) {
+          return {
+            ...c,
+            stage: "면접",
+            interviewAt: newAssignment ? `${newAssignment.date}T${newAssignment.startTime}` : c.interviewAt,
+          };
+        }
+        if (c.id === riskyCandidateId) {
+          return { ...c, interviewAt: undefined };
+        }
+        return c;
+      })
+    );
+  }
+
   function updateOnboardingTask(
     taskId: string,
     patch: Partial<Pick<OnboardingTask, "assignee" | "dueDate">>
@@ -144,12 +214,18 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     jobPostings,
     onboardingTasks,
     interviewAssignments,
+    interviewNotices,
     addCandidate,
     updateCandidateStage,
     toggleOnboardingTask,
     updateOnboardingTask,
     ensureOnboardingTasks,
     runAutoAssign,
+    sendD3Notice,
+    sendD1Notice,
+    recordNoticeResponse,
+    markNoShowAndReshuffle,
+    reassignFromWaitlist,
   };
 
   return <RecruitContext.Provider value={value}>{children}</RecruitContext.Provider>;

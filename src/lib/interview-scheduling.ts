@@ -11,6 +11,9 @@ import { addDays, today } from "./date";
 //     몰리지 않는다.
 //   - 회의실은 패널마다 하나씩 고정 배정해서, 같은 시간대에 같은 회의실을
 //     두 패널이 같이 쓰는 충돌 자체가 애초에 생기지 않게 한다.
+//   - 노쇼 대비: 오전/오후 첫 시작 슬롯(09:00, 13:00) 직후에 10분 버퍼를
+//     끼워 넣는다 — 평소엔 그냥 노는 시간이지만, 첫 후보가 노쇼일 때 이
+//     여유분 덕에 뒤 순번이 밀리지 않고 당겨질 수 있다.
 
 export const SLOT_MINUTES = 30; // 면접 20분 + 채점 10분
 export const INTERVIEW_MINUTES = 20;
@@ -20,7 +23,7 @@ export const WORK_END = "18:00";
 export const LUNCH_START = "12:00";
 export const LUNCH_END = "13:00";
 export const WORK_MINUTES_PER_DAY = 8 * 60; // 9시간 근무 - 점심 1시간
-export const SLOTS_PER_DAY_PER_PANEL = Math.floor(WORK_MINUTES_PER_DAY / SLOT_MINUTES); // 16
+export const NOSHOW_BUFFER_MINUTES = 10; // 09:00, 13:00 시작 슬롯 직후 버퍼
 
 export const EXTERNAL_INTERVIEWERS = ["외부 면접관 A", "외부 면접관 B", "외부 면접관 C", "외부 면접관 D"];
 
@@ -82,17 +85,35 @@ function hhmmToMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
-// 하루치 슬롯 시작 시각 목록(09:00~12:00, 13:00~18:00을 30분 단위로).
+// 한 세션(오전 또는 오후) 안의 슬롯 시작 시각들. 세션의 첫 슬롯 다음에만
+// 10분 버퍼를 끼워 넣는다.
+function sessionSlotStarts(sessionStart: number, sessionEnd: number): number[] {
+  const starts: number[] = [];
+  let t = sessionStart;
+  let isFirst = true;
+  while (t + SLOT_MINUTES <= sessionEnd) {
+    starts.push(t);
+    t += SLOT_MINUTES;
+    if (isFirst) {
+      t += NOSHOW_BUFFER_MINUTES;
+      isFirst = false;
+    }
+  }
+  return starts;
+}
+
+// 하루치 슬롯 시작 시각 목록(09:00~12:00, 13:00~18:00을 30분 단위 + 버퍼로).
 function daySlotStarts(): string[] {
-  const slots: string[] = [];
   const workStart = hhmmToMinutes(WORK_START);
   const lunchStart = hhmmToMinutes(LUNCH_START);
   const lunchEnd = hhmmToMinutes(LUNCH_END);
   const workEnd = hhmmToMinutes(WORK_END);
-  for (let t = workStart; t + SLOT_MINUTES <= lunchStart; t += SLOT_MINUTES) slots.push(minutesToHHMM(t));
-  for (let t = lunchEnd; t + SLOT_MINUTES <= workEnd; t += SLOT_MINUTES) slots.push(minutesToHHMM(t));
-  return slots;
+  const morning = sessionSlotStarts(workStart, lunchStart);
+  const afternoon = sessionSlotStarts(lunchEnd, workEnd);
+  return [...morning, ...afternoon].map(minutesToHHMM);
 }
+
+export const SLOTS_PER_DAY_PER_PANEL = daySlotStarts().length;
 
 function isWeekend(dateISO: string): boolean {
   const [y, m, d] = dateISO.split("-").map(Number);
@@ -169,4 +190,45 @@ export function generateSchedule(
   });
 
   return { panels, assignments };
+}
+
+/**
+ * 결석 처리: candidateId의 배정을 없애고, 같은 패널·같은 날 그 뒤 시간대에
+ * 잡혀 있던 나머지 후보들을 한 칸씩 앞당긴다(각자 바로 앞 사람의 시간을
+ * 물려받음). 09:00/13:00 직후에 비워 둔 10분 버퍼 덕분에, 당겨진 뒤에도
+ * 원래 슬롯 경계와 어긋나지 않는다.
+ */
+export function removeAndCompactAssignment(
+  assignments: InterviewAssignment[],
+  candidateId: string
+): InterviewAssignment[] {
+  const target = assignments.find((a) => a.candidateId === candidateId);
+  if (!target) return assignments;
+
+  const rest = assignments.filter((a) => a.candidateId !== candidateId);
+  const later = rest
+    .filter((a) => a.panelId === target.panelId && a.date === target.date && a.startTime > target.startTime)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  const availableTimes = [
+    { start: target.startTime, end: target.endTime },
+    ...later.slice(0, -1).map((a) => ({ start: a.startTime, end: a.endTime })),
+  ];
+
+  return rest.map((a) => {
+    const idx = later.findIndex((x) => x.candidateId === a.candidateId);
+    if (idx === -1) return a;
+    return { ...a, startTime: availableTimes[idx].start, endTime: availableTimes[idx].end };
+  });
+}
+
+/** 대기명단 후보를 노쇼 위험 후보의 배정(패널·회의실·일시)에 그대로 대입한다. */
+export function replaceAssignmentCandidate(
+  assignments: InterviewAssignment[],
+  oldCandidateId: string,
+  newCandidateId: string
+): InterviewAssignment[] {
+  return assignments.map((a) =>
+    a.candidateId === oldCandidateId ? { ...a, candidateId: newCandidateId } : a
+  );
 }
