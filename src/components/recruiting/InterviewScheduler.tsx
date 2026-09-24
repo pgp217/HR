@@ -29,12 +29,15 @@ export default function InterviewScheduler() {
   const summary = computeScheduleSummary(targetCount, panelCount);
 
   const candidateById = useMemo(() => new Map(candidates.map((c) => [c.id, c])), [candidates]);
+  // 이 표는 "지금 배정된 일정"을 보여주는 영역이므로, 이미 최종/합격/불합격으로
+  // 넘어간 지원자의 과거 면접 이력(면접관 편향 체크용으로 별도 보관)은
+  // 제외하고 현재 "면접" 단계인 지원자만 보여준다.
   const sortedAssignments = useMemo(
     () =>
-      [...interviewAssignments].sort((a, b) =>
-        `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`)
-      ),
-    [interviewAssignments]
+      interviewAssignments
+        .filter((a) => candidateById.get(a.candidateId)?.stage === "면접")
+        .sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`)),
+    [interviewAssignments, candidateById]
   );
 
   function toggle(list: string[], setList: (v: string[]) => void, name: string) {

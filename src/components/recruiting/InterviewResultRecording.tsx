@@ -24,6 +24,16 @@ export default function InterviewResultRecording() {
     return map;
   }, [interviewEvaluations]);
 
+  // 처리해야 할 것(평가 완료·전형 처리 대기)이 위로, 평가 입력이 아직 안 된
+  // 건이 다음, 이미 합격/불합격 처리된 과거 이력이 가장 아래로 오도록
+  // 정렬한다 — 노쇼 방지 패널의 "할 일 우선" 정렬과 같은 원칙이다.
+  function rowPriority(candidateStage: string, overall: number | null): number {
+    const decided = candidateStage === "합격" || candidateStage === "불합격";
+    if (decided) return 2;
+    if (overall !== null) return 0;
+    return 1;
+  }
+
   const rows = useMemo(() => {
     return interviewAssignments
       .map((a) => {
@@ -34,7 +44,14 @@ export default function InterviewResultRecording() {
         const overall = averageScore([internalEval, externalEval].filter((e): e is InterviewEvaluation => !!e));
         return { assignment: a, candidate, internalEval, externalEval, overall };
       })
-      .filter((r): r is NonNullable<typeof r> => r !== null);
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .sort((a, b) => {
+        const p = rowPriority(a.candidate.stage, a.overall) - rowPriority(b.candidate.stage, b.overall);
+        if (p !== 0) return p;
+        return `${a.assignment.date}${a.assignment.startTime}`.localeCompare(
+          `${b.assignment.date}${b.assignment.startTime}`
+        );
+      });
   }, [interviewAssignments, candidateById, evaluationByKey]);
 
   const editingRow = editing

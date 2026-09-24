@@ -166,11 +166,17 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   }
 
   // 현재 "면접" 단계인 지원자 전원을 대상으로 패널 배정과 일정을 다시
-  // 계산해서 덮어쓴다. 후보자의 interviewAt도 배정 결과와 맞춰 갱신한다.
+  // 계산한다. 이 후보군에 대한 배정만 교체하고, 이미 최종/합격/불합격으로
+  // 넘어간 지원자들의 과거 배정 이력은 그대로 남겨둔다 — 그래야 면접관
+  // 누적 배정 횟수·편향 체크가 실행할 때마다 초기화되지 않는다.
   function runAutoAssign(internalNames: string[], externalNames: string[]) {
     const targetIds = candidates.filter((c) => c.stage === "면접").map((c) => c.id);
+    const targetIdSet = new Set(targetIds);
     const { assignments } = generateSchedule(targetIds, internalNames, externalNames);
-    setInterviewAssignments(assignments);
+    setInterviewAssignments((prev) => [
+      ...prev.filter((a) => !targetIdSet.has(a.candidateId)),
+      ...assignments,
+    ]);
     const assignmentByCandidateId = new Map(assignments.map((a) => [a.candidateId, a]));
     setCandidates((prev) =>
       prev.map((c) => {
