@@ -20,11 +20,13 @@ import {
   type InterviewAssignment,
 } from "@/lib/interview-scheduling";
 import type { InterviewNotice } from "@/lib/interview-noshow";
+import type { InterviewEvaluation } from "@/lib/interview-evaluation";
 
 const CANDIDATES_KEY = "hr-recruit-candidates";
 const ONBOARDING_KEY = "hr-recruit-onboarding-tasks";
 const INTERVIEW_ASSIGNMENTS_KEY = "hr-recruit-interview-assignments";
 const INTERVIEW_NOTICES_KEY = "hr-recruit-interview-notices";
+const INTERVIEW_EVALUATIONS_KEY = "hr-recruit-interview-evaluations";
 
 interface RecruitContextValue {
   candidates: Candidate[];
@@ -32,6 +34,7 @@ interface RecruitContextValue {
   onboardingTasks: OnboardingTask[];
   interviewAssignments: InterviewAssignment[];
   interviewNotices: InterviewNotice[];
+  interviewEvaluations: InterviewEvaluation[];
   addCandidate: (input: CandidateInput) => void;
   updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
   toggleOnboardingTask: (taskId: string) => void;
@@ -52,6 +55,7 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   const [onboardingTasks, setOnboardingTasks] = useState<OnboardingTask[]>([]);
   const [interviewAssignments, setInterviewAssignments] = useState<InterviewAssignment[]>([]);
   const [interviewNotices, setInterviewNotices] = useState<InterviewNotice[]>([]);
+  const [interviewEvaluations, setInterviewEvaluations] = useState<InterviewEvaluation[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Read from localStorage only after mount so the server-rendered HTML and
@@ -81,12 +85,14 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
 
     const storedAssignments = readLocalStorage<InterviewAssignment[]>(INTERVIEW_ASSIGNMENTS_KEY, []);
     const storedNotices = readLocalStorage<InterviewNotice[]>(INTERVIEW_NOTICES_KEY, []);
+    const storedEvaluations = readLocalStorage<InterviewEvaluation[]>(INTERVIEW_EVALUATIONS_KEY, []);
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandidates([...refreshedCandidates, ...missingSeedCandidates]);
     setOnboardingTasks([...storedTasks, ...missingSeedTasks]);
     setInterviewAssignments(storedAssignments);
     setInterviewNotices(storedNotices);
+    setInterviewEvaluations(storedEvaluations);
     setHydrated(true);
   }, []);
 
@@ -105,6 +111,10 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated) writeLocalStorage(INTERVIEW_NOTICES_KEY, interviewNotices);
   }, [interviewNotices, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) writeLocalStorage(INTERVIEW_EVALUATIONS_KEY, interviewEvaluations);
+  }, [interviewEvaluations, hydrated]);
 
   function addCandidate(input: CandidateInput) {
     const candidate: Candidate = {
@@ -215,6 +225,7 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     onboardingTasks,
     interviewAssignments,
     interviewNotices,
+    interviewEvaluations,
     addCandidate,
     updateCandidateStage,
     toggleOnboardingTask,

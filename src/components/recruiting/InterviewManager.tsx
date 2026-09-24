@@ -7,6 +7,7 @@ import { toISODate, today } from "@/lib/date";
 import CandidateDetailModal from "./CandidateDetailModal";
 import InterviewScheduler from "./InterviewScheduler";
 import NoShowPrevention from "./NoShowPrevention";
+import InterviewerBiasCheck from "./InterviewerBiasCheck";
 import type { Candidate, JobPosting } from "@/lib/recruit-types";
 
 // 면접 대상자 목록: 전형 단계가 "면접"인 지원자만 인재 DB(RecruitContext)에서
@@ -91,6 +92,8 @@ export default function InterviewManager() {
       <InterviewScheduler />
 
       <NoShowPrevention />
+
+      <InterviewerBiasCheck />
 
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
