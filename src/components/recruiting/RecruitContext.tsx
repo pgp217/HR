@@ -35,6 +35,12 @@ interface RecruitContextValue {
   interviewAssignments: InterviewAssignment[];
   interviewNotices: InterviewNotice[];
   interviewEvaluations: InterviewEvaluation[];
+  submitEvaluation: (
+    candidateId: string,
+    interviewerName: string,
+    breakdown: Record<string, number>,
+    comment: string
+  ) => void;
   addCandidate: (input: CandidateInput) => void;
   updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
   toggleOnboardingTask: (taskId: string) => void;
@@ -212,6 +218,34 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // 같은 (지원자, 면접관) 조합으로 이미 평가가 있으면 덮어쓰고, 없으면
+  // 새로 추가한다.
+  function submitEvaluation(
+    candidateId: string,
+    interviewerName: string,
+    breakdown: Record<string, number>,
+    comment: string
+  ) {
+    const score = Object.values(breakdown).reduce((sum, v) => sum + v, 0);
+    const record: InterviewEvaluation = {
+      candidateId,
+      interviewerName,
+      score,
+      breakdown,
+      comment,
+      evaluatedAt: new Date().toISOString(),
+    };
+    setInterviewEvaluations((prev) => {
+      const idx = prev.findIndex(
+        (e) => e.candidateId === candidateId && e.interviewerName === interviewerName
+      );
+      if (idx === -1) return [...prev, record];
+      const next = [...prev];
+      next[idx] = record;
+      return next;
+    });
+  }
+
   function updateOnboardingTask(
     taskId: string,
     patch: Partial<Pick<OnboardingTask, "assignee" | "dueDate">>
@@ -226,6 +260,7 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     interviewAssignments,
     interviewNotices,
     interviewEvaluations,
+    submitEvaluation,
     addCandidate,
     updateCandidateStage,
     toggleOnboardingTask,

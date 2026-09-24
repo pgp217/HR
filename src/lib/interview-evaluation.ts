@@ -5,7 +5,21 @@
 export interface InterviewEvaluation {
   candidateId: string;
   interviewerName: string; // InterviewAssignment의 internalInterviewer/externalInterviewer와 매칭
-  score: number; // 종합 점수, 0~100
-  comment?: string;
+  score: number; // 항목별 점수 합(=종합 점수), 0~100
+  breakdown: Record<string, number>; // EVALUATION_CRITERIA key별 점수
+  comment: string;
   evaluatedAt: string; // ISO datetime
+}
+
+// 평가표 항목. 4개 항목 × 25점 = 100점 만점.
+export const EVALUATION_CRITERIA = [
+  { key: "jobFit", label: "직무 역량", max: 25 },
+  { key: "communication", label: "커뮤니케이션", max: 25 },
+  { key: "problemSolving", label: "문제해결력", max: 25 },
+  { key: "cultureFit", label: "조직 적합도", max: 25 },
+] as const;
+
+export function averageScore(evaluations: InterviewEvaluation[]): number | null {
+  if (evaluations.length === 0) return null;
+  return evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length;
 }
