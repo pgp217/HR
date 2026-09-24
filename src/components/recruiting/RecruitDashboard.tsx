@@ -71,7 +71,10 @@ export default function RecruitDashboard() {
   }, [candidates]);
 
   const todayInterviews = useMemo(
-    () => candidates.filter((c) => c.interviewAt && c.interviewAt.slice(0, 10) === todayISO),
+    () =>
+      candidates
+        .filter((c) => c.interviewAt && c.interviewAt.slice(0, 10) === todayISO)
+        .sort((a, b) => (a.interviewAt ?? "").localeCompare(b.interviewAt ?? "")),
     [candidates, todayISO]
   );
 
@@ -96,10 +99,13 @@ export default function RecruitDashboard() {
 
   const scoredCandidates = useMemo(() => {
     const scored = candidates.map((c) => ({ candidate: c, score: computeFitScore(c, jobPostings) }));
-    if (!sortByScore) return scored;
-    return [...scored].sort((a, b) =>
-      sortByScore === "desc" ? b.score.total - a.score.total : a.score.total - b.score.total
-    );
+    if (sortByScore) {
+      return [...scored].sort((a, b) =>
+        sortByScore === "desc" ? b.score.total - a.score.total : a.score.total - b.score.total
+      );
+    }
+    // 기본 정렬: 시드 삽입 순서가 아니라 지원일(createdAt) 최신순.
+    return [...scored].sort((a, b) => b.candidate.createdAt.localeCompare(a.candidate.createdAt));
   }, [candidates, jobPostings, sortByScore]);
 
   function toggleScoreSort() {

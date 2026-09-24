@@ -146,9 +146,11 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   }
 
   function ensureOnboardingTasks(candidateId: string) {
+    const candidate = candidates.find((c) => c.id === candidateId);
+    if (!candidate) return;
     setOnboardingTasks((prev) => {
       if (prev.some((t) => t.candidateId === candidateId)) return prev;
-      return [...prev, ...createOnboardingTasksForCandidate(candidateId)];
+      return [...prev, ...createOnboardingTasksForCandidate(candidateId, candidate.availableStartDate)];
     });
   }
 

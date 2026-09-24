@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLeave } from "./LeaveContext";
 import { useApproveWithDutySwap } from "@/hooks/useApproveWithDutySwap";
+import { toISODate, today } from "@/lib/date";
 import SummaryCards from "./SummaryCards";
 import BalanceTable from "./BalanceTable";
 import RequestList from "./RequestList";
@@ -27,7 +28,7 @@ export default function LeaveManager() {
   } = useLeave();
   const decide = useApproveWithDutySwap();
 
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const todayISO = toISODate(today());
 
   return (
     <div className="flex flex-col gap-6">

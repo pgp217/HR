@@ -41,7 +41,7 @@ export default function LeaveGrantsPanel() {
     const map = new Map<string, number>();
     for (const r of requests) {
       if (r.status !== "승인") continue;
-      if (new Date(r.startDate).getFullYear() !== year) continue;
+      if (Number(r.startDate.slice(0, 4)) !== year) continue;
       map.set(r.staffId, (map.get(r.staffId) ?? 0) + r.days);
     }
     return map;
@@ -51,7 +51,7 @@ export default function LeaveGrantsPanel() {
     const map = new Map<string, number>();
     for (const r of requests) {
       if (r.status !== "승인대기") continue;
-      if (new Date(r.startDate).getFullYear() !== year) continue;
+      if (Number(r.startDate.slice(0, 4)) !== year) continue;
       map.set(r.staffId, (map.get(r.staffId) ?? 0) + r.days);
     }
     return map;

@@ -64,6 +64,14 @@ export default function DutyManager() {
   }
 
   function handleAutoAssign() {
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+    const hasExisting = Object.keys(assignments).some((dateISO) => dateISO.startsWith(monthPrefix));
+    if (hasExisting) {
+      const confirmed = window.confirm(
+        `${year}년 ${month + 1}월에 이미 배정된 당직이 있습니다. 자동 배정을 실행하면 기존 배정이 덮어써집니다. 계속할까요?`
+      );
+      if (!confirmed) return;
+    }
     autoAssignMonth(year, month, { isOnLeave });
   }
 

@@ -11,7 +11,15 @@ export default function OnboardingManager() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const todayISO = toISODate(today());
-  const hires = useMemo(() => candidates.filter((c) => c.stage === "합격"), [candidates]);
+  // 입사 가능 시기가 가까운 순으로 — 곧 입사할 사람의 준비 상태를
+  // 먼저 챙길 수 있도록 한다.
+  const hires = useMemo(
+    () =>
+      [...candidates]
+        .filter((c) => c.stage === "합격")
+        .sort((a, b) => (a.availableStartDate || "9999").localeCompare(b.availableStartDate || "9999")),
+    [candidates]
+  );
 
   const totalTasks = onboardingTasks.filter((t) => hires.some((h) => h.id === t.candidateId));
   const totalDone = totalTasks.filter((t) => t.done).length;

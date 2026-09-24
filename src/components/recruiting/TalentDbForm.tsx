@@ -71,7 +71,7 @@ const emptyDraft: Draft = {
   addToTalentPool: false,
 };
 
-const TOTAL_FIELD_COUNT = 63;
+const TOTAL_FIELD_COUNT = Object.keys(emptyDraft).length;
 
 const requiredChecks: { label: string; isFilled: (d: Draft) => boolean }[] = [
   { label: "성명", isFilled: (d) => d.name.trim() !== "" },
@@ -98,6 +98,16 @@ export default function TalentDbForm() {
   const [success, setSuccess] = useState(false);
 
   const recruiterOptions = useMemo(() => staffList.map((s) => s.name), []);
+
+  // "등록 현황"에 보여줄 최근 등록 5건 — candidates 배열 순서(시드
+  // 삽입 순서)가 아니라 실제 등록 시각(createdAt) 기준 최신순으로 뽑는다.
+  const recentCandidates = useMemo(
+    () =>
+      [...candidates]
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 5),
+    [candidates]
+  );
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -484,7 +494,7 @@ export default function TalentDbForm() {
             <p className="mt-2 text-xs text-gray-400">아직 등록된 인재가 없습니다.</p>
           ) : (
             <ul className="mt-3 flex flex-col gap-2">
-              {candidates.slice(0, 5).map((c) => (
+              {recentCandidates.map((c) => (
                 <li key={c.id} className="rounded-md bg-gray-50 px-3 py-2 text-xs">
                   <p className="font-medium text-gray-900">
                     {c.name} · {c.desiredRole || "직무 미기재"}

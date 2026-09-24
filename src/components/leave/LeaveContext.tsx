@@ -97,7 +97,7 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     for (const staff of staffList) map.set(staff.id, 0);
     for (const req of requests) {
       if (req.status !== "승인") continue;
-      if (new Date(req.startDate).getFullYear() !== CURRENT_YEAR) continue;
+      if (Number(req.startDate.slice(0, 4)) !== CURRENT_YEAR) continue;
       map.set(req.staffId, (map.get(req.staffId) ?? 0) + req.days);
     }
     return map;
@@ -133,8 +133,8 @@ export function LeaveProvider({ children }: { children: React.ReactNode }) {
     return requests
       .filter((r) => r.status === "승인")
       .reduce((sum, r) => {
-        const start = new Date(r.startDate);
-        if (start.getFullYear() === y && start.getMonth() === m) {
+        const [startY, startM] = r.startDate.split("-").map(Number);
+        if (startY === y && startM - 1 === m) {
           return sum + r.days;
         }
         return sum;

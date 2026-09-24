@@ -2418,13 +2418,17 @@ export const initialTripRecords: TripRecord[] = [
 // 직원(s6, s17)은 1차 촉구 자체를 아직 보내지 않은 상태(1차대상)다.
 export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
   {
+    // 홍성민(s27)은 근속 1년 미만(입사 2026-03-01)이라 회계연도 기준
+    // 1차 촉구가 아니라 입사일 기준 A묶음(최초 9개월 개근분) 촉구를
+    // 받는다 — A묶음 1차 촉구 기간은 2026-12-01~12-10.
     staffId: "s27",
     year: CURRENT_YEAR,
-    firstNoticeAt: `${CURRENT_YEAR}-07-04`,
-    firstNoticeDays: 8,
-    employeeSpecifiedAt: `${CURRENT_YEAR}-07-05`,
-    employeeSpecifiedStart: `${CURRENT_YEAR}-12-25`,
-    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-27`,
+    underOneYearBatchA: {
+      firstNoticeAt: "2026-12-02",
+      employeeSpecifiedAt: "2026-12-05",
+      employeeSpecifiedStart: "2026-12-25",
+      employeeSpecifiedEnd: "2026-12-27",
+    },
   },
   {
     staffId: "s20",
@@ -2463,13 +2467,16 @@ export const initialLeavePromotionNotices: LeavePromotionNotice[] = [
     employeeSpecifiedEnd: `${CURRENT_YEAR}-12-26`,
   },
   {
+    // 고은채(s29)도 근속 1년 미만(입사 2026-01-20)이라 A묶음 기준으로
+    // 촉구한다 — A묶음 1차 촉구 기간은 2026-10-20~10-29.
     staffId: "s29",
     year: CURRENT_YEAR,
-    firstNoticeAt: `${CURRENT_YEAR}-07-03`,
-    firstNoticeDays: 7,
-    employeeSpecifiedAt: `${CURRENT_YEAR}-07-09`,
-    employeeSpecifiedStart: `${CURRENT_YEAR}-12-23`,
-    employeeSpecifiedEnd: `${CURRENT_YEAR}-12-24`,
+    underOneYearBatchA: {
+      firstNoticeAt: "2026-10-21",
+      employeeSpecifiedAt: "2026-10-24",
+      employeeSpecifiedStart: "2026-12-23",
+      employeeSpecifiedEnd: "2026-12-24",
+    },
   },
   {
     staffId: "s8",
