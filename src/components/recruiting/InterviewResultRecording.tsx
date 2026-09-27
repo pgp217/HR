@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRecruit } from "./RecruitContext";
 import { averageScore, type InterviewEvaluation } from "@/lib/interview-evaluation";
 import EvaluationFormModal from "./EvaluationFormModal";
+import ImportEvaluationsModal from "./ImportEvaluationsModal";
 import type { RecruitStage } from "@/lib/recruit-types";
 
 const stageStyles: Partial<Record<RecruitStage, string>> = {
@@ -16,6 +17,7 @@ export default function InterviewResultRecording() {
     useRecruit();
 
   const [editing, setEditing] = useState<{ candidateId: string; interviewerName: string } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const candidateById = useMemo(() => new Map(candidates.map((c) => [c.id, c])), [candidates]);
   const evaluationByKey = useMemo(() => {
@@ -63,12 +65,20 @@ export default function InterviewResultRecording() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="border-b border-gray-100 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">면접 결과 기록</h3>
-        <p className="mt-0.5 text-xs text-gray-400">
-          내부·외부 면접관이 각자 평가표를 입력하면 두 점수의 평균이 종합 점수가 됩니다. 종합 점수를
-          근거로 합격/불합격 처리하면 채용 대시보드의 전형 단계별 인원에 바로 반영됩니다.
-        </p>
+      <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">면접 결과 기록</h3>
+          <p className="mt-0.5 text-xs text-gray-400">
+            내부·외부 면접관이 각자 평가표를 입력하면 두 점수의 평균이 종합 점수가 됩니다. 종합 점수를
+            근거로 합격/불합격 처리하면 채용 대시보드의 전형 단계별 인원에 바로 반영됩니다.
+          </p>
+        </div>
+        <button
+          onClick={() => setImportOpen(true)}
+          className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+        >
+          평가표 가져오기
+        </button>
       </div>
 
       {rows.length === 0 ? (
@@ -178,6 +188,8 @@ export default function InterviewResultRecording() {
           }}
         />
       )}
+
+      {importOpen && <ImportEvaluationsModal onClose={() => setImportOpen(false)} />}
     </div>
   );
 }
