@@ -1,16 +1,20 @@
 import { addDays, today } from "./date";
 
 // AI 기반 면접 일정 자동 배정.
-//   - 패널 구성: 패널 1개 = 내부 면접관(차장~부장급) 1명 + 외부 면접관 1명.
-//     패널 수 = min(선택한 내부 면접관 수, 선택한 외부 면접관 수) — 1:1로만
-//     짝을 지으므로 남는 쪽은 이번 배정에서 쉰다.
+//   - 트랙(패널) 구성: 트랙 1개 = 내부 면접관(차장~부장급) 1명이 회의실
+//     하나를 하루 종일 맡는다. 트랙 수 = min(선택한 내부 면접관 수, 선택한
+//     외부 면접관 수) — 남는 쪽은 이번 배정에서 쉰다.
+//   - 외부 면접관은 트랙에 고정되지 않고 라운드로빈(원 순환법)으로
+//     순환한다: 같은 트랙이라도 후보가 바뀔 때마다 짝이 되는 외부 면접관이
+//     한 명씩 밀려서, 트랙 수만큼 진행하면 모든 내부·외부 조합이 정확히
+//     한 번씩 돌아간다. 같은 두 사람이 하루 종일 계속 짝을 이루며 생기는
+//     상호 영향(편향)을 줄이기 위함.
 //   - 슬롯 = 면접 20분 + 채점/휴식 10분 = 30분. 근무시간 09:00~18:00에서
 //     점심(12:00~13:00)을 뺀 하루 480분을 슬롯 단위로 나눠 쓴다.
-//   - 배정은 패널을 라운드로빈으로 순회하며 채워서, 패널(=면접관 페어)마다
-//     맡는 인원이 최대 1명 차이 안에서 균등하게 나뉜다 — 특정 면접관에게
-//     몰리지 않는다.
-//   - 회의실은 패널마다 하나씩 고정 배정해서, 같은 시간대에 같은 회의실을
-//     두 패널이 같이 쓰는 충돌 자체가 애초에 생기지 않게 한다.
+//   - 배정은 트랙을 라운드로빈으로 순회하며 채워서, 트랙마다 맡는 인원이
+//     최대 1명 차이 안에서 균등하게 나뉜다 — 특정 면접관에게 몰리지 않는다.
+//   - 회의실은 트랙마다 하나씩 고정 배정해서, 같은 시간대에 같은 회의실을
+//     두 트랙이 같이 쓰는 충돌 자체가 애초에 생기지 않게 한다.
 //   - 노쇼 대비: 오전/오후 첫 시작 슬롯(09:00, 13:00) 직후에 10분 버퍼를
 //     끼워 넣는다 — 평소엔 그냥 노는 시간이지만, 첫 후보가 노쇼일 때 이
 //     여유분 덕에 뒤 순번이 밀리지 않고 당겨질 수 있다.
@@ -32,7 +36,6 @@ export const MEETING_ROOMS = ["회의실 A", "회의실 B", "회의실 C", "회�
 export interface Panel {
   id: string;
   internalInterviewer: string;
-  externalInterviewer: string;
   room: string;
 }
 
@@ -60,7 +63,6 @@ function buildPanels(internalNames: string[], externalNames: string[]): Panel[] 
   return Array.from({ length: count }, (_, i) => ({
     id: `panel-${i + 1}`,
     internalInterviewer: internalNames[i],
-    externalInterviewer: externalNames[i],
     room: MEETING_ROOMS[i % MEETING_ROOMS.length],
   }));
 }
@@ -144,8 +146,12 @@ export function computeScheduleSummary(targetCount: number, panelCount: number):
 }
 
 /**
- * candidateIds를 패널에 라운드로빈으로 순서대로 배정하고, 각 패널은 근무일의
- * 슬롯을 앞에서부터 채워나간다. 패널 수가 0이면 빈 배열을 반환한다.
+ * candidateIds를 트랙(내부 면접관+회의실)에 라운드로빈으로 순서대로
+ * 배정하고, 각 트랙은 근무일의 슬롯을 앞에서부터 채워나간다. 같은 트랙
+ * 안에서도 외부 면접관은 후보가 바뀔 때마다 원 순환법으로 한 칸씩
+ * 돌아가서, 트랙 수만큼 진행되면 모든 내부·외부 조합이 정확히 한 번씩
+ * 나온다(같은 시간대에 같은 외부 면접관이 두 트랙에 겹쳐 배정되는 일은
+ * 없다). 트랙 수가 0이면 빈 배열을 반환한다.
  */
 export function generateSchedule(
   candidateIds: string[],
@@ -155,11 +161,12 @@ export function generateSchedule(
   const panels = buildPanels(internalNames, externalNames);
   if (panels.length === 0 || candidateIds.length === 0) return { panels, assignments: [] };
 
+  const trackCount = panels.length;
   const slotStarts = daySlotStarts();
   const dayIterators = panels.map(() => workDays(today()));
-  // 패널별로 "다음에 쓸 슬롯" 커서를 관리한다: 현재 날짜 + 그 날짜 안에서 몇
-  // 번째 슬롯까지 썼는지.
-  const cursors = panels.map(() => ({ date: "", slotIndex: slotStarts.length }));
+  // 트랙별로 "다음에 쓸 슬롯" 커서(날짜 + 그 날짜 안 슬롯 인덱스)와, 외부
+  // 면접관 순환을 위한 라운드 카운터를 관리한다.
+  const cursors = panels.map(() => ({ date: "", slotIndex: slotStarts.length, round: 0 }));
 
   function nextSlot(panelIdx: number): { date: string; start: string; end: string } {
     const cursor = cursors[panelIdx];
@@ -176,12 +183,15 @@ export function generateSchedule(
   const assignments: InterviewAssignment[] = candidateIds.map((candidateId, i) => {
     const panelIdx = i % panels.length;
     const panel = panels[panelIdx];
+    const cursor = cursors[panelIdx];
+    const externalInterviewer = externalNames[(panelIdx + cursor.round) % trackCount];
+    cursor.round++;
     const { date, start, end } = nextSlot(panelIdx);
     return {
       candidateId,
       panelId: panel.id,
       internalInterviewer: panel.internalInterviewer,
-      externalInterviewer: panel.externalInterviewer,
+      externalInterviewer,
       room: panel.room,
       date,
       startTime: start,
