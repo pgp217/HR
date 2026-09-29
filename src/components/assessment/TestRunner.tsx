@@ -35,12 +35,20 @@ export default function TestRunner() {
   const [phase, setPhase] = useState<"pick" | "answer" | "grading" | "done">("pick");
   const [gradingLabel, setGradingLabel] = useState("");
 
+  function isAnswered(entry: FlowEntry): boolean {
+    if (entry.kind === "objective") return objectiveAnswers[entry.item.id] != null;
+    if (entry.kind === "checklist") return checklistAnswers[entry.item.id] != null;
+    return (scenarioAnswers[entry.item.id] ?? "").trim() !== "";
+  }
+
   const answeredCount = useMemo(() => {
-    return FLOW.filter((f) => {
-      if (f.kind === "objective") return objectiveAnswers[f.item.id] != null;
-      if (f.kind === "checklist") return checklistAnswers[f.item.id] != null;
-      return (scenarioAnswers[f.item.id] ?? "").trim() !== "";
-    }).length;
+    return FLOW.filter(isAnswered).length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objectiveAnswers, checklistAnswers, scenarioAnswers]);
+
+  const firstUnansweredIndex = useMemo(() => {
+    return FLOW.findIndex((f) => !isAnswered(f));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectiveAnswers, checklistAnswers, scenarioAnswers]);
 
   const alreadySubmitted = staffId ? responses.some((r) => r.staffId === staffId) : false;
@@ -153,12 +161,7 @@ export default function TestRunner() {
         </div>
         <ul className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto text-sm">
           {FLOW.map((entry, i) => {
-            const answered =
-              entry.kind === "objective"
-                ? objectiveAnswers[entry.item.id] != null
-                : entry.kind === "checklist"
-                  ? checklistAnswers[entry.item.id] != null
-                  : (scenarioAnswers[entry.item.id] ?? "").trim() !== "";
+            const answered = isAnswered(entry);
             return (
               <li key={entry.item.id}>
                 <button
@@ -255,14 +258,23 @@ export default function TestRunner() {
             >
               다음
             </button>
-          ) : (
+          ) : allAnswered ? (
             <button
               onClick={handleSubmit}
-              disabled={!allAnswered}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               제출
             </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-amber-600">아직 답하지 않은 문항이 있습니다.</span>
+              <button
+                onClick={() => setIndex(firstUnansweredIndex)}
+                className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100"
+              >
+                미응답 {firstUnansweredIndex + 1}번 문항으로 이동
+              </button>
+            </div>
           )}
         </div>
       </div>
