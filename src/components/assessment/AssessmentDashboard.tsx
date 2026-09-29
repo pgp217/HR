@@ -5,7 +5,7 @@ import { staffList } from "@/lib/mock-data";
 import { useAssessment } from "./AssessmentContext";
 import { scoreResponse } from "@/lib/ai-assessment-scoring";
 import { checkReliability } from "@/lib/ai-assessment-reliability";
-import type { AssessmentLevel } from "@/lib/ai-assessment-types";
+import type { AssessmentAxisId, AssessmentLevel } from "@/lib/ai-assessment-types";
 import ResultDetail from "./ResultDetail";
 
 type RowStatus = "미응시" | "채점 대기" | "확인 대기" | "확정 완료";
@@ -35,7 +35,7 @@ const levelBarColor: Record<AssessmentLevel, string> = {
 };
 
 export default function AssessmentDashboard() {
-  const { rounds, activeRound, responses, scenarioOpinions, axisConfirmations, startNewRound } = useAssessment();
+  const { rounds, activeRound, responses, scenarioOpinions, axisConfirmations, startNewRound, confirmAxis } = useAssessment();
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
   const [newRoundName, setNewRoundName] = useState("");
@@ -324,13 +324,17 @@ export default function AssessmentDashboard() {
 
       {selectedRow?.result && (
         <ResultDetail
-          staff={selectedRow.staff}
-          manager={selectedRow.staff.managerId ? (staffById.get(selectedRow.staff.managerId) ?? null) : null}
+          title={`${selectedRow.staff.name} · ${selectedRow.staff.team}`}
+          subtitle={`팀장: ${
+            selectedRow.staff.managerId ? (staffById.get(selectedRow.staff.managerId)?.name ?? "-") : "-"
+          }`}
           result={selectedRow.result}
           prevResult={selectedRow.prevResult}
           rank={rankByStaffId.get(selectedRow.staff.id) ?? null}
           totalRanked={scoredRows.length}
           reliabilityFlags={selectedRow.reliabilityFlags}
+          confirmedBy={selectedRow.staff.managerId ?? ""}
+          onConfirmAxis={(input) => confirmAxis({ ...input, axis: input.axis as AssessmentAxisId })}
           onClose={() => setSelectedStaffId(null)}
         />
       )}
