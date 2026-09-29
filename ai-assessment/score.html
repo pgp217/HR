@@ -95,7 +95,7 @@
     r.domains.forEach(function (d) {
       var box = el('div', 'domain');
       var head = el('div', 'domain-head');
-      head.appendChild(el('span', null, d.id + '. ' + d.name));
+      head.appendChild(el('span', null, d.id + '. ' + d.name + ' (' + d.part + ')'));
       head.appendChild(el('span', null, d.score.toFixed(1) + '점 · ' + d.level));
       box.appendChild(head);
       var bar = el('div', 'bar');
@@ -106,7 +106,19 @@
       box.appendChild(el('div', 'muted', '자기평가 ' + d.selfScore.toFixed(1) + '점 · 문제풀이 ' +
         d.correct + '/' + d.choiceCount + ' 정답' + (d.wrongItems.length ? ' (오답: ' + d.wrongItems.join(', ') + ')' : '')));
       if (d.gapNote) box.appendChild(el('div', 'note', '⚠ ' + d.gapNote));
-      if (d.level === '입문' || d.level === '기초' || d.name === r.weakness) box.appendChild(el('div', null, '추천: ' + d.tip));
+      if (d.needsWork) box.appendChild(el('div', null, '추천: ' + d.tip));
+      if (d.review.length) {
+        var rv = el('div', 'review', '복습할 장: ');
+        d.review.forEach(function (c, i) {
+          if (i) rv.appendChild(document.createTextNode(', '));
+          var a = el('a', null, c.title);
+          a.href = c.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          rv.appendChild(a);
+        });
+        box.appendChild(rv);
+      }
       card.appendChild(box);
     });
     return card;

@@ -104,6 +104,8 @@ button.secondary { background: transparent; color: var(--accent); border: 1px so
 .domain-head { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
 .domain .bar { margin: 6px 0; }
 .note { color: var(--warn); font-size: 0.9rem; }
+.review { font-size: 0.9rem; }
+a { color: var(--accent); }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 th, td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; }
 th { color: var(--muted); font-weight: 600; }

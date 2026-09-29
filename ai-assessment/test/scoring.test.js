@@ -29,11 +29,28 @@ test('every choice item has a valid answer key and every key maps to an item', (
   });
 });
 
-test('perfect answers score 100, 선도', () => {
+test('every item cites an existing book chapter and each domain has 4 self + 4 choice items', () => {
+  def.items.forEach((it) => assert.ok(def.chapters[it.ch], it.id + ' -> ' + it.ch));
+  def.domains.forEach((d) => {
+    const its = def.items.filter((it) => it.domain === d.id);
+    assert.equal(its.filter((it) => it.type === 'likert').length, 4, d.id);
+    assert.equal(its.filter((it) => it.type === 'choice').length, 4, d.id);
+  });
+  Object.values(def.chapters).forEach((c) => assert.match(c.url, /^https:\/\/zakedu\.github\.io\/genai-book\/part\d\/ch\d\d-[a-z-]+\/$/));
+});
+
+test('answer positions are spread evenly across options', () => {
+  const counts = [0, 0, 0, 0];
+  Object.values(scoring.ANSWER_KEY).forEach((k) => counts[k - 1]++);
+  assert.deepEqual(counts, [5, 5, 5, 5]);
+});
+
+test('perfect answers score 100, 전문가', () => {
   const r = roundTrip(responses(5, true));
   assert.equal(r.ok, true);
   assert.equal(r.total, 100);
-  assert.equal(r.level, '선도');
+  assert.equal(r.level, '전문가');
+  r.domains.forEach((d) => assert.deepEqual(d.review, []));
   assert.equal(r.strength, null);
   assert.deepEqual(r.meta, META);
 });
@@ -46,13 +63,13 @@ test('lowest answers score 0, 입문', () => {
 
 test('domain score weights self-assessment 40% and test 60%', () => {
   const resp = responses(3, true); // self 50, test 100 => 80
-  resp.A4 = 1; // A: 2/3 correct => 50*0.4 + 66.67*0.6 = 60
+  resp.A5 = 1; // A: 3/4 correct => 50*0.4 + 75*0.6 = 65
   const r = roundTrip(resp);
   const a = r.domains.find((d) => d.id === 'A');
-  assert.equal(a.score, 60);
-  assert.deepEqual(a.wrongItems, ['A4']);
+  assert.equal(a.score, 65);
+  assert.deepEqual(a.wrongItems, ['A5']);
   assert.equal(r.domains.find((d) => d.id === 'B').score, 80);
-  assert.equal(r.total, 76);
+  assert.equal(r.total, 77);
   assert.equal(r.weakness, 'AI 이해');
 });
 
@@ -90,8 +107,25 @@ test('rejects files that are not result sheets', () => {
 });
 
 test('rejects a sheet from a different test version', () => {
-  const text = sheet.buildResultSheet(def, META, responses(4, true)).replace('AIQ-v1', 'AIQ-v0');
+  const text = sheet.buildResultSheet(def, META, responses(4, true)).replace(def.version, 'AIQ-v0');
   const r = scoring.score(def, sheet.readResultSheet(text));
   assert.equal(r.ok, false);
   assert.match(r.errors[0], /버전/);
+});
+
+test('recommends chapters for wrong answers and low self-ratings, in book order', () => {
+  const resp = responses(4, true);
+  resp.D8 = 1; // ch10 오답
+  resp.D1 = 2; // ch09 자기평가 낮음
+  const r = roundTrip(resp);
+  const d = r.domains.find((x) => x.id === 'D');
+  assert.deepEqual(d.review.map((c) => c.id), ['ch09', 'ch10']);
+  assert.equal(d.review[1].url, 'https://zakedu.github.io/genai-book/part4/ch10-ethics/');
+  assert.equal(d.needsWork, true);
+  assert.equal(r.domains.find((x) => x.id === 'A').needsWork, false);
+});
+
+test('levels follow the book appendix E thresholds', () => {
+  assert.deepEqual([90, 80, 70, 65, 55, 50, 40, 33, 20].map((s) => scoring.levelOf(s).name),
+    ['전문가', '전문가', '고급', '고급', '중급', '중급', '초급', '초급', '입문']);
 });

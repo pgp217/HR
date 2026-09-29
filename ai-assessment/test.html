@@ -9,7 +9,7 @@
 <body>
 <main>
   <h1>AI 역량 검사</h1>
-  <p class="lead">5개 영역, 30문항입니다 (약 10~15분). 모든 문항에 답한 뒤 <b>결과지 파일</b>을 내려받아 담당자에게 제출하세요.</p>
+  <p class="lead"><a href="https://zakedu.github.io/genai-book/" target="_blank" rel="noopener">genai-book 교재</a>의 5개 파트를 바탕으로 한 40문항입니다 (약 15~20분). 모든 문항에 답한 뒤 <b>결과지 파일</b>을 내려받아 담당자에게 제출하세요.</p>
 
   <form id="form" novalidate>
     <section class="card">
@@ -59,7 +59,7 @@
     var sec = document.createElement('section');
     sec.className = 'card';
     sec.innerHTML = '<h2></h2><p class="muted"></p>';
-    sec.querySelector('h2').textContent = d.id + '. ' + d.name;
+    sec.querySelector('h2').textContent = d.id + '. ' + d.name + ' (' + d.part + ')';
     sec.querySelector('p').textContent = d.desc;
 
     def.items.filter(function (it) { return it.domain === d.id; }).forEach(function (it) {
