@@ -15,7 +15,7 @@ test.html  ──(응시)──▶  AI역량검사_결과지_홍길동_2026-09-2
 | `scoring.js` | 정답 키, 채점 규칙, 수준 판정, 영역별 추천과 복습할 장 |
 | `test.html` | 응시 페이지. 제출하면 결과지 파일을 내려받음 |
 | `score.html` | 채점 페이지. 결과지 여러 개를 올리면 개인별 리포트, 전체 요약, 요약 CSV를 제공 |
-| `test/` | 채점 로직 단위 테스트 (`node --test ai-assessment/test/*.test.js`) |
+| `test/` | 채점 로직 단위 테스트 (`node --test ai-assessment/test/*.test.mjs`) |
 
 ## 검사 구성
 

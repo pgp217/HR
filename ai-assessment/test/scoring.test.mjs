@@ -1,9 +1,9 @@
-// 실행: node --test ai-assessment/test/*.test.js
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const def = require('../items.js');
-const sheet = require('../sheet.js');
-const scoring = require('../scoring.js');
+// 실행: node --test ai-assessment/test/*.test.mjs
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import def from '../items.js';
+import sheet from '../sheet.js';
+import scoring from '../scoring.js';
 
 const META = { name: '홍길동', employee_id: 'E001', department: '인사팀', submitted_at: '2026-09-23T10:00:00+09:00' };
 
