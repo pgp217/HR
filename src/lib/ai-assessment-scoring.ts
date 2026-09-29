@@ -12,8 +12,8 @@ import {
 // ai-assessment/(PR #4) scoring.js의 ANSWER_KEY(1-based)를 0-based로 옮긴 값.
 //   A5:2,A6:1,A7:4,A8:3 / B5:2,B6:4,B7:1,B8:3 / C5:2,C6:3,C7:1,C8:4 / D5:4,D6:2,D7:1,D8:3
 const ANSWER_KEY: Record<string, number> = {
-  AU1: 1, AU2: 0, AU3: 3, AU4: 2,
-  OQ1: 1, OQ2: 3, OQ3: 0, OQ4: 2, OQ5: 1, OQ6: 2, OQ7: 0, OQ8: 3,
+  AU1: 1, AU2: 0, AU3: 3, AU4: 2, AU5: 1,
+  OQ1: 1, OQ2: 3, OQ3: 0, OQ4: 2, OQ5: 1, OQ6: 2, OQ7: 0, OQ8: 3, OQ9: 1,
   RM1: 3, RM2: 1, RM3: 0, RM4: 2,
 };
 
