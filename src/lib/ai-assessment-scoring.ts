@@ -60,6 +60,8 @@ export interface AssessmentResult {
   totalScore: number;
   level: AssessmentLevel;
   axes: AxisScoreResult[];
+  strength: string | null; // 최종 점수가 가장 높은 축 이름 — 전 축이 동점이면 null
+  weakness: string | null; // 최종 점수가 가장 낮은 축 이름 — 전 축이 동점이면 null
 }
 
 export function scoreResponse(
@@ -142,12 +144,20 @@ export function scoreResponse(
 
   const totalScore = round1(axes.reduce((s, a) => s + a.finalScore, 0) / axes.length);
 
+  // 강점/약점 — 최종 점수가 가장 높은/낮은 축. 전 축이 동점이면 의미가 없으므로 null.
+  const sortedByFinalScore = [...axes].sort((a, b) => b.finalScore - a.finalScore);
+  const allTied = sortedByFinalScore[0].finalScore === sortedByFinalScore[sortedByFinalScore.length - 1].finalScore;
+  const strength = allTied ? null : sortedByFinalScore[0].name;
+  const weakness = allTied ? null : sortedByFinalScore[sortedByFinalScore.length - 1].name;
+
   return {
     staffId: response.staffId,
     responseId: response.id,
     totalScore,
     level: levelOf(totalScore),
     axes,
+    strength,
+    weakness,
   };
 }
 
