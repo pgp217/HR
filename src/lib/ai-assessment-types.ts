@@ -87,9 +87,19 @@ export interface ScenarioItem {
 
 export type AssessmentLevel = "입문" | "초급" | "중급" | "고급" | "전문가";
 
+// 진단 회차 — 한 번에 하나만 "진행 중"(endDate 없음)이고, 새 회차를 시작하면
+// 이전 회차는 자동으로 마감된다. 회차가 있어야 "이전 회차 대비 변화"를 잴 수 있다.
+export interface AssessmentRound {
+  id: string;
+  name: string;
+  startDate: string; // ISO date
+  endDate?: string; // ISO date, 없으면 진행 중
+}
+
 export interface AssessmentResponse {
   id: string;
   staffId: string;
+  roundId: string;
   submittedAt: string; // ISO datetime
   objectiveAnswers: Record<string, number>; // itemId -> 선택한 보기 인덱스(0-based)
   checklistAnswers: Record<string, number>; // itemId -> 자기보고 응답(1~5)
