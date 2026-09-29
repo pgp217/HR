@@ -5,6 +5,8 @@ export interface Staff {
   name: string;
   role: StaffRole;
   joinedAt: string; // ISO date
+  team: string;
+  managerId?: string; // 팀장의 staffId. 팀장 본인은 undefined.
 }
 
 export type LeaveType = "연차" | "반차(오전)" | "반차(오후)" | "경조사" | "병가";

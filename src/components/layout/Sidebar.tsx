@@ -32,6 +32,13 @@ const navGroups: NavGroup[] = [
       { label: "입사자 온보딩", href: "/recruiting/onboarding", icon: "🧾" },
     ],
   },
+  {
+    title: "AI 역량진단",
+    items: [
+      { label: "진단 응시", href: "/ai-assessment/test", icon: "📝" },
+      { label: "진단 관리", href: "/ai-assessment/dashboard", icon: "📈" },
+    ],
+  },
 ];
 
 export default function Sidebar() {
