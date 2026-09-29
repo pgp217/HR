@@ -139,6 +139,7 @@ export default function TripList({ records, staffById, onDecision, onDelete }: P
           <thead>
             <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
               <th className="px-4 py-2 font-medium">직원</th>
+              <th className="px-4 py-2 font-medium">팀</th>
               <th className="px-4 py-2 font-medium">종류</th>
               <th className="px-4 py-2 font-medium">기간/시간</th>
               <th className="px-4 py-2 font-medium">목적지·사유</th>
@@ -151,7 +152,7 @@ export default function TripList({ records, staffById, onDecision, onDelete }: P
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                   해당하는 신청 내역이 없습니다.
                 </td>
               </tr>
@@ -162,6 +163,7 @@ export default function TripList({ records, staffById, onDecision, onDelete }: P
               return (
                 <tr key={r.id} className="border-b border-gray-50 last:border-0">
                   <td className="px-4 py-2.5 font-medium text-gray-900">{staff?.name ?? "-"}</td>
+                  <td className="px-4 py-2.5 text-gray-500">{staff?.team ?? "-"}</td>
                   <td className="px-4 py-2.5">
                     <span
                       className={`rounded px-2 py-0.5 text-xs font-medium ${

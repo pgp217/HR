@@ -82,7 +82,7 @@ export default function LeaveCalendar({ requests, staffById }: Props) {
                 {onLeave.slice(0, 3).map((r) => (
                   <span
                     key={r.id}
-                    title={`${staffById.get(r.staffId)?.name} · ${formatLeaveTypeLabel(r.type)}`}
+                    title={`${staffById.get(r.staffId)?.name} (${staffById.get(r.staffId)?.team}) · ${formatLeaveTypeLabel(r.type)}`}
                     className="w-fit max-w-full self-start truncate rounded bg-blue-50 px-1 py-0.5 text-[10px] text-blue-700"
                   >
                     {staffById.get(r.staffId)?.name}

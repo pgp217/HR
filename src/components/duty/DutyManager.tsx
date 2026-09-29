@@ -122,9 +122,10 @@ export default function DutyManager() {
                 onDragStart={(e) => {
                   e.dataTransfer.setData("text/plain", s.id);
                 }}
-                className="cursor-grab select-none rounded-md bg-amber-50 px-2 py-1.5 text-center text-xs font-medium text-amber-800 active:cursor-grabbing"
+                className="flex cursor-grab select-none flex-col items-center rounded-md bg-amber-50 px-2 py-1.5 text-center active:cursor-grabbing"
               >
-                {s.name}
+                <span className="text-xs font-medium text-amber-800">{s.name}</span>
+                <span className="text-[10px] text-amber-600">{s.team}</span>
               </div>
             ))}
           </div>
@@ -234,7 +235,9 @@ export default function DutyManager() {
           <p className="text-xs text-gray-500">현재 당직자</p>
           <p className="mt-1 text-sm">
             {selectedStaff ? (
-              <span className="font-medium text-gray-900">{selectedStaff.name}</span>
+              <span className="font-medium text-gray-900">
+                {selectedStaff.name} <span className="font-normal text-gray-400">({selectedStaff.team})</span>
+              </span>
             ) : (
               <span className="text-gray-400">지정된 당직자가 없습니다.</span>
             )}
@@ -250,7 +253,7 @@ export default function DutyManager() {
               <option value="">직원 선택...</option>
               {staffList.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name}
+                  {s.name} ({s.team})
                 </option>
               ))}
             </select>
