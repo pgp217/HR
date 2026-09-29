@@ -2,7 +2,8 @@ import type { ChecklistItem, ObjectiveItem, ScenarioItem } from "./ai-assessment
 
 // 객관식 문항 — ai-assessment/(PR #4) items.js의 A·B·C·D 영역 객관식(각 4문항)을
 // 그대로 재사용한다. 정답 인덱스는 ai-assessment-scoring.ts에만 있다(문항
-// 정의와 정답을 분리하는 원래 구조를 그대로 유지).
+// 정의와 정답을 분리하는 원래 구조를 그대로 유지). AU5·OQ9는 축별 문항 수를
+// 맞추려고 새로 추가한 문항이다.
 export const OBJECTIVE_ITEMS: ObjectiveItem[] = [
   // AI 이해 (기존 A5~A8)
   {
@@ -47,6 +48,17 @@ export const OBJECTIVE_ITEMS: ObjectiveItem[] = [
       "이미지 생성 기능이 있는지",
       "컨텍스트 윈도우(한 번에 처리할 수 있는 텍스트 길이)",
       "앱 화면 디자인",
+    ],
+  },
+  {
+    id: "AU5",
+    axis: "aiUnderstanding",
+    text: "AI의 '환각(Hallucination)'에 대한 설명으로 가장 적절한 것은?",
+    options: [
+      "AI가 의도적으로 거짓 정보를 지어내는 것이다",
+      "그럴듯하지만 사실이 아닌 내용을 AI가 확신 있는 어조로 생성하는 현상이다",
+      "AI가 답변을 거부하고 오류를 내는 상태다",
+      "사용자의 질문을 잘못 이해해서 생기는 단순 오타다",
     ],
   },
 
@@ -134,6 +146,17 @@ export const OBJECTIVE_ITEMS: ObjectiveItem[] = [
       "특정 작가 이름을 프롬프트에 넣어 그 화풍을 그대로 따라 한 이미지를 쓴다",
     ],
   },
+  {
+    id: "OQ9",
+    axis: "outputQuality",
+    text: "AI가 만든 데이터 표(수치 요약)를 최종 보고서에 쓰기 전, 결과물 품질을 검증하는 가장 좋은 방법은?",
+    options: [
+      "표 형식이 깔끔하면 그대로 사용한다",
+      "원본 데이터와 대조해 수치가 실제로 일치하는지 직접 확인한다",
+      "AI에게 다시 한번 확인해 달라고만 요청한다",
+      "검증은 다른 동료에게 미룬다",
+    ],
+  },
 
   // 리스크관리 (기존 D5~D8)
   {
@@ -183,10 +206,12 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: "UF2", axis: "usageFrequency", text: "나는 새로운 업무를 시작할 때 AI로 먼저 정보를 탐색하거나 초안을 만든다." },
   { id: "UF3", axis: "usageFrequency", text: "나는 주 1회 이상 AI 도구를 업무에 사용한다." },
   { id: "UF4", axis: "usageFrequency", text: "나는 여러 AI 도구 중 상황에 맞는 도구를 골라 쓴다." },
+  { id: "UF5", axis: "usageFrequency", text: "나는 하루 업무 중 필요할 때마다 AI를 바로 열어서 활용한다." },
   { id: "DS1", axis: "dissemination", text: "나는 동료에게 AI 활용법을 알려 줄 수 있다." },
   { id: "DS2", axis: "dissemination", text: "나는 팀 내에서 AI 활용 사례나 프롬프트 노하우를 공유한 적이 있다." },
   { id: "DS3", axis: "dissemination", text: "나는 동료가 AI 관련 질문을 하면 도움을 준다." },
   { id: "DS4", axis: "dissemination", text: "나는 우리 팀의 AI 활용 문화를 개선하기 위해 의견을 낸 적이 있다." },
+  { id: "DS5", axis: "dissemination", text: "나는 회의나 워크숍에서 AI 활용 사례를 발표하거나 소개한 적이 있다." },
 ];
 
 // 서술형 시나리오 — 결과물품질/리스크관리 축에 하나씩. rubric은 AI 채점 프롬프트와
