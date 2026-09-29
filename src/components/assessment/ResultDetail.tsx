@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Staff } from "@/lib/types";
 import type { AssessmentResult } from "@/lib/ai-assessment-scoring";
+import type { ReliabilityFlag } from "@/lib/ai-assessment-reliability";
 import { useAssessment } from "./AssessmentContext";
 
 interface Props {
@@ -10,6 +11,9 @@ interface Props {
   manager: Staff | null;
   result: AssessmentResult;
   prevResult?: AssessmentResult | null;
+  rank?: number | null;
+  totalRanked?: number;
+  reliabilityFlags?: ReliabilityFlag[];
   onClose: () => void;
 }
 
@@ -21,7 +25,7 @@ const levelStyle: Record<string, string> = {
   입문: "bg-gray-100 text-gray-600",
 };
 
-export default function ResultDetail({ staff, manager, result, prevResult, onClose }: Props) {
+export default function ResultDetail({ staff, manager, result, prevResult, rank, totalRanked, reliabilityFlags, onClose }: Props) {
   const { confirmAxis } = useAssessment();
   const [draftScores, setDraftScores] = useState<Record<string, string>>({});
   const prevAxisByAxis = new Map((prevResult?.axes ?? []).map((a) => [a.axis, a]));
@@ -52,9 +56,14 @@ export default function ResultDetail({ staff, manager, result, prevResult, onClo
           </button>
         </div>
 
-        <div className="mb-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3">
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-md bg-gray-50 px-4 py-3">
           <span className="text-2xl font-bold text-gray-900">{result.totalScore}점</span>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${levelStyle[result.level]}`}>{result.level}</span>
+          {rank != null && totalRanked != null && totalRanked > 0 && (
+            <span className="text-sm font-medium text-gray-600">
+              {totalRanked}명 중 {rank}위
+            </span>
+          )}
           {totalDiff != null && (
             <span className={`text-sm font-medium ${totalDiff > 0 ? "text-green-600" : totalDiff < 0 ? "text-red-600" : "text-gray-400"}`}>
               전 회차 대비 {totalDiff > 0 ? "+" : ""}
@@ -62,6 +71,26 @@ export default function ResultDetail({ staff, manager, result, prevResult, onClo
             </span>
           )}
         </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
+          <span className="text-gray-600">
+            강점 <span className="font-medium text-green-700">{result.strength ?? "-"}</span>
+          </span>
+          <span className="text-gray-600">
+            약점 <span className="font-medium text-red-700">{result.weakness ?? "-"}</span>
+          </span>
+        </div>
+
+        {reliabilityFlags && reliabilityFlags.length > 0 && (
+          <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="mb-1 text-xs font-semibold text-amber-800">⚠ 응답 신뢰 가능성 확인 필요</p>
+            <ul className="list-inside list-disc text-xs text-amber-700">
+              {reliabilityFlags.map((flag) => (
+                <li key={flag.type}>{flag.label}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm">

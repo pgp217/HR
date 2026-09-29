@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { staffList } from "@/lib/mock-data";
 import { useAssessment } from "./AssessmentContext";
 import { scoreResponse } from "@/lib/ai-assessment-scoring";
+import { checkReliability } from "@/lib/ai-assessment-reliability";
 import type { AssessmentLevel } from "@/lib/ai-assessment-types";
 import ResultDetail from "./ResultDetail";
 
@@ -68,7 +69,7 @@ export default function AssessmentDashboard() {
     return staffList
       .map((staff) => {
         const response = responseByStaff.get(staff.id);
-        if (!response) return { staff, response: null, result: null, status: "미응시" as RowStatus };
+        if (!response) return { staff, response: null, result: null, status: "미응시" as RowStatus, prevResult: null, reliabilityFlags: [] };
 
         const result = scoreResponse(response, scenarioOpinions, axisConfirmations);
         const hasPending = result.axes.some((a) => a.pending);
@@ -77,8 +78,9 @@ export default function AssessmentDashboard() {
 
         const prevResponse = previousResponseByStaff.get(staff.id);
         const prevResult = prevResponse ? scoreResponse(prevResponse, scenarioOpinions, axisConfirmations) : null;
+        const reliabilityFlags = checkReliability(response);
 
-        return { staff, response, result, status, prevResult };
+        return { staff, response, result, status, prevResult, reliabilityFlags };
       })
       .sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
   }, [responseByStaff, previousResponseByStaff, scenarioOpinions, axisConfirmations]);
@@ -90,6 +92,16 @@ export default function AssessmentDashboard() {
 
   // 조직 집계: 이번 회차에서 결과가 나온 사람 기준(팀장 확정 여부와 무관하게 잠정치 포함).
   const scoredRows = rows.filter((r) => r.result);
+
+  // 순위: 이번 회차에서 결과가 나온 사람들 안에서 총점 기준(동점자는 같은 순위, 표준 경쟁 순위 방식).
+  const rankByStaffId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of scoredRows) {
+      const higherCount = scoredRows.filter((other) => other.result!.totalScore > row.result!.totalScore).length;
+      map.set(row.staff.id, higherCount + 1);
+    }
+    return map;
+  }, [scoredRows]);
   const levelCounts = useMemo(() => {
     const counts = new Map<AssessmentLevel, number>(LEVELS.map((l) => [l, 0]));
     for (const r of scoredRows) counts.set(r.result!.level, (counts.get(r.result!.level) ?? 0) + 1);
@@ -248,12 +260,14 @@ export default function AssessmentDashboard() {
                 <th className="px-4 py-2 font-medium">직급</th>
                 <th className="px-4 py-2 font-medium">상태</th>
                 <th className="px-4 py-2 font-medium">총점</th>
+                <th className="px-4 py-2 font-medium">순위</th>
                 <th className="px-4 py-2 font-medium">수준</th>
                 <th className="px-4 py-2 font-medium">전 회차 대비</th>
+                <th className="px-4 py-2 font-medium">신뢰도</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ staff, result, status, prevResult }) => (
+              {rows.map(({ staff, result, status, prevResult, reliabilityFlags }) => (
                 <tr
                   key={staff.id}
                   onClick={() => result && setSelectedStaffId(staff.id)}
@@ -266,6 +280,9 @@ export default function AssessmentDashboard() {
                     <span className={`rounded px-2 py-0.5 text-xs font-medium ${statusStyle[status]}`}>{status}</span>
                   </td>
                   <td className="px-4 py-2.5 text-gray-700">{result ? `${result.totalScore}점` : "-"}</td>
+                  <td className="px-4 py-2.5 text-gray-700">
+                    {result ? `${rankByStaffId.get(staff.id)}/${scoredRows.length}위` : "-"}
+                  </td>
                   <td className="px-4 py-2.5 text-gray-700">{result ? result.level : "-"}</td>
                   <td className="px-4 py-2.5">
                     {!result ? (
@@ -284,6 +301,20 @@ export default function AssessmentDashboard() {
                       })()
                     )}
                   </td>
+                  <td className="px-4 py-2.5">
+                    {reliabilityFlags.length > 0 ? (
+                      <span
+                        title={reliabilityFlags.map((f) => f.label).join("\n")}
+                        className="cursor-help rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700"
+                      >
+                        ⚠ 확인 필요
+                      </span>
+                    ) : result ? (
+                      <span className="text-xs text-gray-300">-</span>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -297,6 +328,9 @@ export default function AssessmentDashboard() {
           manager={selectedRow.staff.managerId ? (staffById.get(selectedRow.staff.managerId) ?? null) : null}
           result={selectedRow.result}
           prevResult={selectedRow.prevResult}
+          rank={rankByStaffId.get(selectedRow.staff.id) ?? null}
+          totalRanked={scoredRows.length}
+          reliabilityFlags={selectedRow.reliabilityFlags}
           onClose={() => setSelectedStaffId(null)}
         />
       )}
