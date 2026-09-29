@@ -26,7 +26,7 @@ const FLOW: FlowEntry[] = [
 ];
 
 export default function TestRunner() {
-  const { responses, submitResponse, recordScenarioOpinion } = useAssessment();
+  const { activeRound, responses, submitResponse, recordScenarioOpinion } = useAssessment();
   const [staffId, setStaffId] = useState("");
   const [index, setIndex] = useState(0);
   const [objectiveAnswers, setObjectiveAnswers] = useState<Record<string, number>>({});
@@ -51,7 +51,9 @@ export default function TestRunner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectiveAnswers, checklistAnswers, scenarioAnswers]);
 
-  const alreadySubmitted = staffId ? responses.some((r) => r.staffId === staffId) : false;
+  const alreadySubmitted = staffId
+    ? responses.some((r) => r.staffId === staffId && r.roundId === activeRound?.id)
+    : false;
   const current = FLOW[index];
   const allAnswered = answeredCount === FLOW.length;
 
@@ -93,6 +95,7 @@ export default function TestRunner() {
     return (
       <div className="mx-auto max-w-md rounded-lg border border-gray-200 bg-white p-6">
         <h2 className="mb-1 text-base font-semibold text-gray-900">응시자 선택</h2>
+        <p className="mb-1 text-xs font-medium text-blue-600">{activeRound?.name ?? "진행 중인 회차 없음"}</p>
         <p className="mb-4 text-sm text-gray-500">진단을 응시할 본인을 선택해주세요.</p>
         <select
           value={staffId}

@@ -9,6 +9,7 @@ interface Props {
   staff: Staff;
   manager: Staff | null;
   result: AssessmentResult;
+  prevResult?: AssessmentResult | null;
   onClose: () => void;
 }
 
@@ -20,9 +21,11 @@ const levelStyle: Record<string, string> = {
   입문: "bg-gray-100 text-gray-600",
 };
 
-export default function ResultDetail({ staff, manager, result, onClose }: Props) {
+export default function ResultDetail({ staff, manager, result, prevResult, onClose }: Props) {
   const { confirmAxis } = useAssessment();
   const [draftScores, setDraftScores] = useState<Record<string, string>>({});
+  const prevAxisByAxis = new Map((prevResult?.axes ?? []).map((a) => [a.axis, a]));
+  const totalDiff = prevResult ? Math.round((result.totalScore - prevResult.totalScore) * 10) / 10 : null;
 
   function handleConfirm(axis: string, defaultScore: number) {
     const raw = draftScores[axis];
@@ -52,6 +55,12 @@ export default function ResultDetail({ staff, manager, result, onClose }: Props)
         <div className="mb-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3">
           <span className="text-2xl font-bold text-gray-900">{result.totalScore}점</span>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${levelStyle[result.level]}`}>{result.level}</span>
+          {totalDiff != null && (
+            <span className={`text-sm font-medium ${totalDiff > 0 ? "text-green-600" : totalDiff < 0 ? "text-red-600" : "text-gray-400"}`}>
+              전 회차 대비 {totalDiff > 0 ? "+" : ""}
+              {totalDiff}점
+            </span>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -64,6 +73,7 @@ export default function ResultDetail({ staff, manager, result, onClose }: Props)
                 <th className="px-2 py-2 font-medium">자기보고</th>
                 <th className="px-2 py-2 font-medium">잠정 점수</th>
                 <th className="px-2 py-2 font-medium">팀장 확정</th>
+                {prevResult && <th className="px-2 py-2 font-medium">전 회차 대비</th>}
               </tr>
             </thead>
             <tbody>
@@ -113,6 +123,21 @@ export default function ResultDetail({ staff, manager, result, onClose }: Props)
                       )}
                     </div>
                   </td>
+                  {prevResult && (
+                    <td className="px-2 py-2.5">
+                      {(() => {
+                        const prevAxis = prevAxisByAxis.get(axis.axis);
+                        if (!prevAxis) return <span className="text-gray-300">-</span>;
+                        const diff = Math.round((axis.finalScore - prevAxis.finalScore) * 10) / 10;
+                        return (
+                          <span className={diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : "text-gray-500"}>
+                            {diff > 0 ? "+" : ""}
+                            {diff}점
+                          </span>
+                        );
+                      })()}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
