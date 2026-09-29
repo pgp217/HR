@@ -37,6 +37,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "진단 응시", href: "/ai-assessment/test", icon: "📝" },
       { label: "진단 관리", href: "/ai-assessment/dashboard", icon: "📈" },
+      { label: "외부 지원자", href: "/ai-assessment/candidates", icon: "✉️" },
     ],
   },
 ];

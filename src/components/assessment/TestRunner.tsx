@@ -1,87 +1,44 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { staffList } from "@/lib/mock-data";
-import { OBJECTIVE_ITEMS, CHECKLIST_ITEMS, SCENARIO_ITEMS } from "@/lib/ai-assessment-items";
-import { ASSESSMENT_AXES, FREQUENCY_LABELS, type ObjectiveItem, type ChecklistItem, type ScenarioItem } from "@/lib/ai-assessment-types";
+import { SCENARIO_ITEMS } from "@/lib/ai-assessment-items";
+import { axisName, type FlowAnswers } from "@/lib/ai-assessment-flow";
 import { useAssessment } from "./AssessmentContext";
-
-type FlowEntry =
-  | { kind: "objective"; item: ObjectiveItem }
-  | { kind: "scenario"; item: ScenarioItem }
-  | { kind: "checklist"; item: ChecklistItem };
-
-const axisName = (id: string) => ASSESSMENT_AXES.find((a) => a.id === id)?.name ?? id;
-
-// 응시 순서: AI 이해(객관식) → 결과물품질(객관식+서술형) → 리스크관리(객관식+서술형)
-// → 활용빈도(체크리스트) → 전파도(체크리스트).
-const FLOW: FlowEntry[] = [
-  ...OBJECTIVE_ITEMS.filter((i) => i.axis === "aiUnderstanding").map((item) => ({ kind: "objective" as const, item })),
-  ...OBJECTIVE_ITEMS.filter((i) => i.axis === "outputQuality").map((item) => ({ kind: "objective" as const, item })),
-  ...SCENARIO_ITEMS.filter((i) => i.axis === "outputQuality").map((item) => ({ kind: "scenario" as const, item })),
-  ...OBJECTIVE_ITEMS.filter((i) => i.axis === "riskManagement").map((item) => ({ kind: "objective" as const, item })),
-  ...SCENARIO_ITEMS.filter((i) => i.axis === "riskManagement").map((item) => ({ kind: "scenario" as const, item })),
-  ...CHECKLIST_ITEMS.filter((i) => i.axis === "usageFrequency").map((item) => ({ kind: "checklist" as const, item })),
-  ...CHECKLIST_ITEMS.filter((i) => i.axis === "dissemination").map((item) => ({ kind: "checklist" as const, item })),
-];
+import AssessmentFlowRunner from "./AssessmentFlowRunner";
 
 export default function TestRunner() {
   const { activeRound, responses, submitResponse, recordScenarioOpinion } = useAssessment();
   const [staffId, setStaffId] = useState("");
-  const [index, setIndex] = useState(0);
-  const [objectiveAnswers, setObjectiveAnswers] = useState<Record<string, number>>({});
-  const [checklistAnswers, setChecklistAnswers] = useState<Record<string, number>>({});
-  const [scenarioAnswers, setScenarioAnswers] = useState<Record<string, string>>({});
   const [phase, setPhase] = useState<"pick" | "answer" | "grading" | "done">("pick");
   const [gradingLabel, setGradingLabel] = useState("");
-
-  function isAnswered(entry: FlowEntry): boolean {
-    if (entry.kind === "objective") return objectiveAnswers[entry.item.id] != null;
-    if (entry.kind === "checklist") return checklistAnswers[entry.item.id] != null;
-    return (scenarioAnswers[entry.item.id] ?? "").trim() !== "";
-  }
-
-  const answeredCount = useMemo(() => {
-    return FLOW.filter(isAnswered).length;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectiveAnswers, checklistAnswers, scenarioAnswers]);
-
-  const firstUnansweredIndex = useMemo(() => {
-    return FLOW.findIndex((f) => !isAnswered(f));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectiveAnswers, checklistAnswers, scenarioAnswers]);
 
   const alreadySubmitted = staffId
     ? responses.some((r) => r.staffId === staffId && r.roundId === activeRound?.id)
     : false;
-  const current = FLOW[index];
-  const allAnswered = answeredCount === FLOW.length;
 
   function startTest() {
     if (!staffId) return;
     setPhase("answer");
   }
 
-  async function handleSubmit() {
-    const response = submitResponse({ staffId, objectiveAnswers, checklistAnswers, scenarioAnswers });
+  async function handleSubmit(answers: FlowAnswers) {
+    const response = submitResponse({ staffId, ...answers });
     setPhase("grading");
 
-    for (const entry of FLOW) {
-      if (entry.kind !== "scenario") continue;
-      setGradingLabel(`${axisName(entry.item.axis)} 시나리오 채점 중...`);
+    for (const item of SCENARIO_ITEMS) {
+      const answer = answers.scenarioAnswers[item.id];
+      if (answer == null) continue;
+      setGradingLabel(`${axisName(item.axis)} 시나리오 채점 중...`);
       try {
         const res = await fetch("/api/ai-assessment/grade", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            prompt: entry.item.prompt,
-            rubric: entry.item.rubric,
-            answer: scenarioAnswers[entry.item.id] ?? "",
-          }),
+          body: JSON.stringify({ prompt: item.prompt, rubric: item.rubric, answer }),
         });
         const data = await res.json();
         if (res.ok) {
-          recordScenarioOpinion({ responseId: response.id, itemId: entry.item.id, score: data.score, comment: data.comment });
+          recordScenarioOpinion({ responseId: response.id, itemId: item.id, score: data.score, comment: data.comment });
         }
       } catch {
         // 채점 API 호출이 실패해도 응답 자체는 이미 저장됐으므로, 팀장이 나중에
@@ -150,137 +107,5 @@ export default function TestRunner() {
   }
 
   // phase === "answer"
-  return (
-    <div className="flex flex-col gap-4 lg:flex-row">
-      <aside className="shrink-0 rounded-lg border border-gray-200 bg-white p-3 lg:w-64">
-        <div className="mb-2 flex items-center justify-between text-xs text-gray-500">
-          <span>진행 {answeredCount}/{FLOW.length}</span>
-        </div>
-        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
-          <div
-            className="h-full rounded-full bg-blue-600"
-            style={{ width: `${(answeredCount / FLOW.length) * 100}%` }}
-          />
-        </div>
-        <ul className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto text-sm">
-          {FLOW.map((entry, i) => {
-            const answered = isAnswered(entry);
-            return (
-              <li key={entry.item.id}>
-                <button
-                  onClick={() => setIndex(i)}
-                  className={`flex w-full flex-col rounded-md px-2 py-1.5 text-left ${
-                    i === index ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">
-                    문항 {i + 1} {answered && <span className="text-green-600">✓</span>}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {axisName(entry.item.axis)} · {entry.kind === "objective" ? "객관식" : entry.kind === "checklist" ? "체크" : "서술형"}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </aside>
-
-      <div className="flex-1 rounded-lg border border-gray-200 bg-white p-6">
-        <p className="mb-1 text-xs font-medium text-gray-400">
-          문항 {index + 1} / {FLOW.length} · {axisName(current.item.axis)}
-        </p>
-
-        {current.kind === "objective" && (
-          <div>
-            <p className="mb-4 text-base text-gray-900">{current.item.text}</p>
-            <div className="flex flex-col gap-2">
-              {current.item.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setObjectiveAnswers((prev) => ({ ...prev, [current.item.id]: i }))}
-                  className={`rounded-md border px-4 py-3 text-left text-sm ${
-                    objectiveAnswers[current.item.id] === i
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {current.kind === "checklist" && (
-          <div>
-            <p className="mb-4 text-base text-gray-900">{current.item.text}</p>
-            <div className="flex flex-col gap-2">
-              {FREQUENCY_LABELS.map((label, i) => (
-                <button
-                  key={i}
-                  onClick={() => setChecklistAnswers((prev) => ({ ...prev, [current.item.id]: i + 1 }))}
-                  className={`rounded-md border px-4 py-3 text-left text-sm ${
-                    checklistAnswers[current.item.id] === i + 1
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {current.kind === "scenario" && (
-          <div>
-            <p className="mb-4 whitespace-pre-wrap text-base text-gray-900">{current.item.prompt}</p>
-            <textarea
-              value={scenarioAnswers[current.item.id] ?? ""}
-              onChange={(e) => setScenarioAnswers((prev) => ({ ...prev, [current.item.id]: e.target.value }))}
-              rows={6}
-              placeholder="자유롭게 서술해주세요."
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            />
-          </div>
-        )}
-
-        <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
-          <button
-            onClick={() => setIndex((i) => Math.max(0, i - 1))}
-            disabled={index === 0}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            이전
-          </button>
-          {index < FLOW.length - 1 ? (
-            <button
-              onClick={() => setIndex((i) => Math.min(FLOW.length - 1, i + 1))}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              다음
-            </button>
-          ) : allAnswered ? (
-            <button
-              onClick={handleSubmit}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              제출
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-amber-600">아직 답하지 않은 문항이 있습니다.</span>
-              <button
-                onClick={() => setIndex(firstUnansweredIndex)}
-                className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100"
-              >
-                미응답 {firstUnansweredIndex + 1}번 문항으로 이동
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  return <AssessmentFlowRunner headingLabel={activeRound?.name} onSubmit={handleSubmit} />;
 }

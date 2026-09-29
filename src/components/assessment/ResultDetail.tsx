@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { Staff } from "@/lib/types";
 import type { AssessmentResult } from "@/lib/ai-assessment-scoring";
 import type { ReliabilityFlag } from "@/lib/ai-assessment-reliability";
-import { useAssessment } from "./AssessmentContext";
 
 interface Props {
-  staff: Staff;
-  manager: Staff | null;
+  title: string;
+  subtitle?: string;
   result: AssessmentResult;
   prevResult?: AssessmentResult | null;
   rank?: number | null;
   totalRanked?: number;
   reliabilityFlags?: ReliabilityFlag[];
+  confirmedBy: string;
+  onConfirmAxis: (input: { responseId: string; axis: string; confirmedScore: number; confirmedBy: string }) => void;
   onClose: () => void;
 }
 
@@ -25,8 +25,18 @@ const levelStyle: Record<string, string> = {
   입문: "bg-gray-100 text-gray-600",
 };
 
-export default function ResultDetail({ staff, manager, result, prevResult, rank, totalRanked, reliabilityFlags, onClose }: Props) {
-  const { confirmAxis } = useAssessment();
+export default function ResultDetail({
+  title,
+  subtitle,
+  result,
+  prevResult,
+  rank,
+  totalRanked,
+  reliabilityFlags,
+  confirmedBy,
+  onConfirmAxis,
+  onClose,
+}: Props) {
   const [draftScores, setDraftScores] = useState<Record<string, string>>({});
   const prevAxisByAxis = new Map((prevResult?.axes ?? []).map((a) => [a.axis, a]));
   const totalDiff = prevResult ? Math.round((result.totalScore - prevResult.totalScore) * 10) / 10 : null;
@@ -35,7 +45,7 @@ export default function ResultDetail({ staff, manager, result, prevResult, rank,
     const raw = draftScores[axis];
     const score = raw != null && raw !== "" ? Number(raw) : defaultScore;
     if (!Number.isFinite(score) || score < 0 || score > 100) return;
-    confirmAxis({ responseId: result.responseId, axis: axis as never, confirmedScore: score, confirmedBy: manager?.id ?? "" });
+    onConfirmAxis({ responseId: result.responseId, axis, confirmedScore: score, confirmedBy });
   }
 
   return (
@@ -46,10 +56,8 @@ export default function ResultDetail({ staff, manager, result, prevResult, rank,
       >
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">
-              {staff.name} · {staff.team}
-            </h3>
-            <p className="text-xs text-gray-400">팀장: {manager?.name ?? "-"}</p>
+            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             ✕
