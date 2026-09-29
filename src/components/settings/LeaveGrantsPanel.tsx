@@ -103,6 +103,7 @@ export default function LeaveGrantsPanel() {
         <thead>
           <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
             <th className="px-4 py-2 font-medium">직원</th>
+            <th className="px-4 py-2 font-medium">팀</th>
             <th className="px-4 py-2 font-medium">부여(자동)</th>
             <th className="px-4 py-2 font-medium">이월</th>
             <th className="px-4 py-2 font-medium">조정</th>
@@ -126,6 +127,7 @@ export default function LeaveGrantsPanel() {
             return (
               <tr key={staff.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
+                <td className="px-4 py-2.5 text-gray-500">{staff.team}</td>
                 <td className="px-4 py-2.5 text-gray-700">
                   <span
                     title={

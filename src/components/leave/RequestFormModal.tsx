@@ -87,7 +87,7 @@ export default function RequestFormModal({
             >
               {staffList.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.role})
+                  {s.name} ({s.team} · {s.role})
                 </option>
               ))}
             </select>
@@ -154,7 +154,7 @@ export default function RequestFormModal({
               <option value="">인수인계자 선택...</option>
               {handoverOptions.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.role})
+                  {s.name} ({s.team} · {s.role})
                 </option>
               ))}
             </select>

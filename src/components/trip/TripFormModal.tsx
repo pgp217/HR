@@ -76,7 +76,7 @@ export default function TripFormModal({ staffList, defaultDate, onSubmit, onClos
             >
               {staffList.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.role})
+                  {s.name} ({s.team} · {s.role})
                 </option>
               ))}
             </select>

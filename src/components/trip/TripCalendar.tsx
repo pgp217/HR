@@ -94,7 +94,7 @@ export default function TripCalendar({ records, staffById }: Props) {
                 {onThatDay.slice(0, 3).map((r) => (
                   <span
                     key={r.id}
-                    title={`${staffById.get(r.staffId)?.name} · ${r.type} · ${r.purpose}`}
+                    title={`${staffById.get(r.staffId)?.name} (${staffById.get(r.staffId)?.team}) · ${r.type} · ${r.purpose}`}
                     className={`w-fit max-w-full self-start truncate rounded px-1 py-0.5 text-[10px] ${typeStyles[r.type]}`}
                   >
                     {staffById.get(r.staffId)?.name}

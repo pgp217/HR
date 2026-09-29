@@ -23,6 +23,7 @@ export default function BalanceTable({
         <thead>
           <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
             <th className="px-4 py-2 font-medium">직원</th>
+            <th className="px-4 py-2 font-medium">팀</th>
             <th className="px-4 py-2 font-medium">역할</th>
             <th className="px-4 py-2 font-medium">발생 연차</th>
             <th className="px-4 py-2 font-medium">사용</th>
@@ -39,6 +40,7 @@ export default function BalanceTable({
             return (
               <tr key={staff.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{staff.name}</td>
+                <td className="px-4 py-2.5 text-gray-500">{staff.team}</td>
                 <td className="px-4 py-2.5 text-gray-500">{staff.role}</td>
                 <td className="px-4 py-2.5 text-gray-700">{granted}일</td>
                 <td className="px-4 py-2.5 text-gray-700">{used}일</td>

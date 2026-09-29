@@ -122,8 +122,9 @@ export default function TodayPage() {
         <div className="border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">직원별 오늘 운영 상태</h3>
         </div>
-        <div className="grid grid-cols-5 gap-2 border-b border-gray-100 px-4 py-2 text-left text-xs text-gray-500">
+        <div className="grid grid-cols-6 gap-2 border-b border-gray-100 px-4 py-2 text-left text-xs text-gray-500">
           <span className="font-medium">직원</span>
+          <span className="font-medium">팀</span>
           <span className="font-medium">역할</span>
           <span className="font-medium">근무</span>
           <span className="font-medium">당직</span>
@@ -136,9 +137,10 @@ export default function TodayPage() {
           return (
             <div
               key={staff.id}
-              className="grid grid-cols-5 items-center gap-2 border-b border-gray-50 px-4 py-2.5 text-sm last:border-0"
+              className="grid grid-cols-6 items-center gap-2 border-b border-gray-50 px-4 py-2.5 text-sm last:border-0"
             >
               <span className="font-medium text-gray-900">{staff.name}</span>
+              <span className="text-gray-500">{staff.team}</span>
               <span className="text-gray-500">{staff.role}</span>
               <span>
                 {onLeave ? (

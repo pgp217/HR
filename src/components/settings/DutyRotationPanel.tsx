@@ -98,6 +98,7 @@ export default function DutyRotationPanel() {
             <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
               <th className="px-3 py-2 font-medium">순번</th>
               <th className="px-3 py-2 font-medium">직원명</th>
+              <th className="px-3 py-2 font-medium">팀</th>
               <th className="px-3 py-2 font-medium">역할</th>
               <th className="px-3 py-2 font-medium">활성</th>
               <th className="px-3 py-2 font-medium">이번달 배정</th>
@@ -117,6 +118,7 @@ export default function DutyRotationPanel() {
                 <tr key={entry.staffId} className="border-b border-gray-50 last:border-0">
                   <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
                   <td className="px-3 py-2 font-medium text-gray-900">{staff.name}</td>
+                  <td className="px-3 py-2 text-gray-500">{staff.team}</td>
                   <td className="px-3 py-2 text-gray-500">{staff.role}</td>
                   <td className="px-3 py-2">
                     <input

@@ -172,6 +172,7 @@ export default function RequestList({
         <thead>
           <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
             <th className="px-4 py-2 font-medium">직원</th>
+            <th className="px-4 py-2 font-medium">팀</th>
             <th className="w-24 px-4 py-2 font-medium">종류</th>
             <th className="px-4 py-2 font-medium">기간</th>
             <th className="px-4 py-2 font-medium">일수</th>
@@ -185,7 +186,7 @@ export default function RequestList({
         <tbody>
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
+              <td colSpan={10} className="px-4 py-8 text-center text-gray-400">
                 해당하는 신청 내역이 없습니다.
               </td>
             </tr>
@@ -197,6 +198,7 @@ export default function RequestList({
             return (
               <tr key={req.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-2.5 font-medium text-gray-900">{staff?.name ?? "-"}</td>
+                <td className="px-4 py-2.5 text-gray-500">{staff?.team ?? "-"}</td>
                 <td className="px-4 py-2.5 text-gray-700">
                   <div>{leaveTypeLabel}</div>
                   {leaveTypeTime && <div className="whitespace-nowrap">({leaveTypeTime})</div>}
