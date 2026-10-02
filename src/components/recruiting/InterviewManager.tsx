@@ -144,18 +144,25 @@ export default function InterviewManager() {
                   </td>
                   <td className="px-4 py-2.5 text-gray-500">
                     {c.interviewAt ? (
-                      <span
-                        className={
-                          c.interviewAt.slice(0, 10) === todayISO ? "font-medium text-amber-700" : ""
-                        }
-                      >
-                        {new Date(c.interviewAt).toLocaleString("ko-KR", {
-                          month: "numeric",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={
+                            c.interviewAt.slice(0, 10) === todayISO ? "font-medium text-amber-700" : ""
+                          }
+                        >
+                          {new Date(c.interviewAt).toLocaleString("ko-KR", {
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {c.interviewAt.slice(0, 10) < todayISO && (
+                          <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
+                            지난 일정 · 결과 입력 필요
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-gray-300">미배정</span>
                     )}
