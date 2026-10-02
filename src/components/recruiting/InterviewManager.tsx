@@ -29,10 +29,28 @@ function matchedPosting(candidate: Candidate, postings: JobPosting[]): JobPostin
 }
 
 export default function InterviewManager() {
-  const { candidates, jobPostings } = useRecruit();
+  const { candidates, jobPostings, updateCandidateStage } = useRecruit();
   const [detailCandidateId, setDetailCandidateId] = useState<string | null>(null);
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
+  const [newDateTime, setNewDateTime] = useState("");
 
   const todayISO = toISODate(today());
+
+  // 지난 일정에 대한 처리: 노쇼·취소는 재배정 없이 바로 불합격 처리,
+  // 면접관 사정으로 다시 잡아야 할 때만 새 일시를 지정한다. 이미 면접을
+  // 보고 결과만 기다리는 사람은 "면접 결과 기록"에서 점수를 입력하면
+  // 전형 단계가 자동으로 넘어가므로 여기서 별도로 다루지 않는다.
+  function handleReject(c: Candidate) {
+    const confirmed = window.confirm(`${c.name}님을 노쇼·취소로 불합격 처리할까요?`);
+    if (confirmed) updateCandidateStage(c.id, "불합격");
+  }
+
+  function handleRescheduleSave(id: string) {
+    if (!newDateTime) return;
+    updateCandidateStage(id, "면접", newDateTime);
+    setReschedulingId(null);
+    setNewDateTime("");
+  }
 
   const interviewCandidates = useMemo(
     () => candidates.filter((c) => c.stage === "면접"),
@@ -144,24 +162,71 @@ export default function InterviewManager() {
                   </td>
                   <td className="px-4 py-2.5 text-gray-500">
                     {c.interviewAt ? (
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={
-                            c.interviewAt.slice(0, 10) === todayISO ? "font-medium text-amber-700" : ""
-                          }
-                        >
-                          {new Date(c.interviewAt).toLocaleString("ko-KR", {
-                            month: "numeric",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        {c.interviewAt.slice(0, 10) < todayISO && (
-                          <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
-                            지난 일정 · 결과 입력 필요
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={
+                              c.interviewAt.slice(0, 10) === todayISO ? "font-medium text-amber-700" : ""
+                            }
+                          >
+                            {new Date(c.interviewAt).toLocaleString("ko-KR", {
+                              month: "numeric",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
-                        )}
+                          {c.interviewAt.slice(0, 10) < todayISO && (
+                            <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
+                              지난 일정
+                            </span>
+                          )}
+                        </div>
+                        {c.interviewAt.slice(0, 10) < todayISO &&
+                          (reschedulingId === c.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="datetime-local"
+                                value={newDateTime}
+                                onChange={(e) => setNewDateTime(e.target.value)}
+                                className="rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+                              />
+                              <button
+                                onClick={() => handleRescheduleSave(c.id)}
+                                disabled={!newDateTime}
+                                className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                              >
+                                저장
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setReschedulingId(null);
+                                  setNewDateTime("");
+                                }}
+                                className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleReject(c)}
+                                className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                              >
+                                노쇼·취소 → 불합격 처리
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setReschedulingId(c.id);
+                                  setNewDateTime("");
+                                }}
+                                className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                              >
+                                면접관 사정 → 재배정
+                              </button>
+                            </div>
+                          ))}
                       </div>
                     ) : (
                       <span className="text-gray-300">미배정</span>
