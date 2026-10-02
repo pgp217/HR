@@ -18,6 +18,7 @@ npm run dev
 - **당직 일정** (`/operations/staff-schedule/duty`): 직원 대기열에서 이름을 달력에 드래그해 당직 배정, 월 자동 배정/리셋, 날짜별 수동 지정.
 - **오늘 현황** (`/operations/staff-schedule/today`): 오늘의 휴가·근무 현황 요약.
 - **설정**: 화면 골격만 구성되어 있으며 기능은 다음 단계에서 구현 예정입니다.
+- **AI 역량 검사** (`ai-assessment/`, 앱과 별도의 정적 HTML): 응시 → 결과지(CSV) → 업로드 채점. 자세한 내용은 [ai-assessment/README.md](ai-assessment/README.md) 참고. 앱 안으로 옮기는 작업은 다음 단계에서 진행합니다.
 
 ## 프로젝트 구조
 
@@ -26,3 +27,4 @@ npm run dev
 - `src/components/leave`: 휴가·연차 관리 및 승인 관리 공유 컴포넌트
 - `src/components/duty`: 당직 일정(드래그 앤 드롭 배정) 컴포넌트
 - `src/app/operations/staff-schedule`: 운영 일정 라우트
+- `ai-assessment/`: AI 역량 검사 (문항·채점 로직, 응시/채점 페이지, 단위 테스트)
