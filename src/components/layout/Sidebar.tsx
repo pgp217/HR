@@ -32,14 +32,17 @@ const navGroups: NavGroup[] = [
       { label: "입사자 온보딩", href: "/recruiting/onboarding", icon: "🧾" },
     ],
   },
-  {
-    title: "AI 역량진단",
-    items: [
-      { label: "진단 응시", href: "/ai-assessment/test", icon: "📝" },
-      { label: "진단 관리", href: "/ai-assessment/dashboard", icon: "📈" },
-      { label: "외부 지원자", href: "/ai-assessment/candidates", icon: "✉️" },
-    ],
-  },
+  // AI 역량진단: 문항을 더 다듬은 뒤 다시 노출할 예정이라 포트폴리오 데모
+  // 범위에서는 일단 메뉴만 숨긴다. 라우트·코드·데이터는 그대로 남아있어서
+  // 이 그룹을 되돌리기만 하면 바로 복원된다.
+  // {
+  //   title: "AI 역량진단",
+  //   items: [
+  //     { label: "진단 응시", href: "/ai-assessment/test", icon: "📝" },
+  //     { label: "진단 관리", href: "/ai-assessment/dashboard", icon: "📈" },
+  //     { label: "외부 지원자", href: "/ai-assessment/candidates", icon: "✉️" },
+  //   ],
+  // },
 ];
 
 export default function Sidebar() {
