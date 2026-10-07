@@ -53,6 +53,8 @@ interface RecruitContextValue {
   recordNoticeResponse: (candidateId: string) => void;
   markNoShowAndReshuffle: (candidateId: string) => void;
   reassignFromWaitlist: (riskyCandidateId: string, waitlistCandidateId: string) => void;
+  loadDemoData: () => void;
+  resetDemoData: () => void;
 }
 
 const RecruitContext = createContext<RecruitContextValue | null>(null);
@@ -274,6 +276,25 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     setOnboardingTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
   }
 
+  // 포트폴리오 데모용: 현재 상태와 무관하게 큐레이션된 시드 데이터로
+  // 강제 교체한다(병합이 아니라 통째로 덮어쓰기) — 보여주는 사람이
+  // 이전에 뭘 건드렸든 항상 같은 데모 상태를 보장하기 위함.
+  function loadDemoData() {
+    setCandidates(seedCandidates);
+    setOnboardingTasks(seedOnboardingTasks);
+    setInterviewAssignments(seedInterviewAssignments);
+    setInterviewNotices([]);
+    setInterviewEvaluations(seedInterviewEvaluations);
+  }
+
+  function resetDemoData() {
+    setCandidates([]);
+    setOnboardingTasks([]);
+    setInterviewAssignments([]);
+    setInterviewNotices([]);
+    setInterviewEvaluations([]);
+  }
+
   const value: RecruitContextValue = {
     candidates,
     jobPostings,
@@ -293,6 +314,8 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     recordNoticeResponse,
     markNoShowAndReshuffle,
     reassignFromWaitlist,
+    loadDemoData,
+    resetDemoData,
   };
 
   return <RecruitContext.Provider value={value}>{children}</RecruitContext.Provider>;

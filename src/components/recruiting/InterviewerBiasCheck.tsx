@@ -105,9 +105,21 @@ export default function InterviewerBiasCheck() {
                     {s.averageScore !== null ? `${s.averageScore.toFixed(1)}점` : "-"}
                   </td>
                   <td className={`px-4 py-2.5 ${deviationStyle(s.deviation)}`}>
-                    {s.deviation !== null
-                      ? `${s.deviation > 0 ? "+" : ""}${s.deviation.toFixed(1)}점`
-                      : "평가 기록 없음"}
+                    {s.deviation !== null ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span>
+                          {s.deviation > 0 ? "+" : ""}
+                          {s.deviation.toFixed(1)}점
+                        </span>
+                        {Math.abs(s.deviation) >= 5 && (
+                          <span className="text-[11px] font-normal text-gray-500">
+                            전체 평균보다 {s.deviation > 0 ? "후하게" : "박하게"} 채점 — Calibration 권장
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      "평가 기록 없음"
+                    )}
                   </td>
                 </tr>
               ))}
