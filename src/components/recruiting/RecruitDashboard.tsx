@@ -5,7 +5,7 @@ import { useRecruit } from "./RecruitContext";
 import { DESIRED_ROLES } from "@/lib/recruit-options";
 import type { RecruitStage } from "@/lib/recruit-types";
 import { toISODate, today } from "@/lib/date";
-import { computeFitScore, FIT_SCORE_MAX, FAIL_THRESHOLD } from "@/lib/recruit-scoring";
+import { computeFitScore, FIT_SCORE_MAX, REVIEW_THRESHOLD } from "@/lib/recruit-scoring";
 import CandidateDetailModal from "./CandidateDetailModal";
 
 const STAGES: RecruitStage[] = ["서류", "면접", "최종", "합격", "불합격"];
@@ -242,7 +242,9 @@ export default function RecruitDashboard() {
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">지원자 목록 · 전형 관리</h3>
           <p className="text-xs text-gray-400">
-            적합도 점수 = 경력 20 + 역량 레벨 30 + 희망 직무 적합도 50 · {FAIL_THRESHOLD}점 미만 &ldquo;탈락 대상&rdquo; 표시
+            적합도 점수 = 경력 20 + 역량 레벨 30 + 희망 직무 적합도 50 · {REVIEW_THRESHOLD}점 미만 &ldquo;추가 검토 필요&rdquo; 표시
+            <br />
+            평가 기준은 채용 공고별로 설정할 수 있으며, 자동 점수는 의사결정 참고자료로만 활용합니다.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -286,9 +288,9 @@ export default function RecruitDashboard() {
                     >
                       {c.name}
                     </button>
-                    {score.total < FAIL_THRESHOLD && (
-                      <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-600">
-                        탈락 대상
+                    {score.total < REVIEW_THRESHOLD && (
+                      <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                        추가 검토 필요
                       </span>
                     )}
                   </div>

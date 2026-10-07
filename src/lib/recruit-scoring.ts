@@ -68,10 +68,10 @@ export function computeFitScore(candidate: Candidate, postings: JobPosting[]): F
   };
 }
 
-// 60점 미만은 "탈락 대상"으로 명단에 표시만 한다. 전형 단계는 자동으로
-// 바꾸지 않는다 — 최종 불합격 처리는 담당자가 직접 판단해서 수동으로
-// 변경하도록 의도적으로 분리했다.
-export const FAIL_THRESHOLD = 60;
+// 60점 미만은 "추가 검토 필요"로 명단에 표시만 한다. 전형 단계는 자동으로
+// 바꾸지 않는다 — 점수는 참고 자료일 뿐이고, 최종 판단(불합격 처리 포함)은
+// 담당자가 직접 하도록 의도적으로 분리했다.
+export const REVIEW_THRESHOLD = 60;
 
 export const FIT_SCORE_MAX = {
   experience: MAX_EXPERIENCE_SCORE,
