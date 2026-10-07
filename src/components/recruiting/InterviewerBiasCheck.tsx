@@ -113,7 +113,7 @@ export default function InterviewerBiasCheck() {
                         </span>
                         {Math.abs(s.deviation) >= 5 && (
                           <span className="text-[11px] font-normal text-gray-500">
-                            전체 평균보다 {s.deviation > 0 ? "후하게" : "박하게"} 채점 — Calibration 권장
+                            전체 평균보다 {s.deviation > 0 ? "후하게" : "박하게"} 채점 — 평가 기준 조정 권장
                           </span>
                         )}
                       </div>
