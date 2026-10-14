@@ -2,6 +2,7 @@
 
 import type { Candidate, JobPosting } from "@/lib/recruit-types";
 import { computeFitScore, FIT_SCORE_MAX } from "@/lib/recruit-scoring";
+import { useRecruit } from "./RecruitContext";
 
 interface Props {
   candidate: Candidate;
@@ -42,6 +43,9 @@ function Section({
 
 export default function CandidateDetailModal({ candidate: c, jobPostings, onClose }: Props) {
   const score = computeFitScore(c, jobPostings);
+  const { candidateAiNotes, analyzingCandidateIds, analyzeCandidate } = useRecruit();
+  const aiNote = candidateAiNotes.find((n) => n.candidateId === c.id);
+  const analyzing = analyzingCandidateIds.has(c.id);
 
   return (
     <div
@@ -127,6 +131,43 @@ export default function CandidateDetailModal({ candidate: c, jobPostings, onClos
                 <Field label="담당 리크루터" value={c.recruiterInCharge} />
               </div>
             </dl>
+
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-gray-500">AI 서류 분석 (참고용 — 적합도 점수에 반영되지 않음)</p>
+                <button
+                  onClick={() => analyzeCandidate(c.id)}
+                  disabled={analyzing}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {analyzing ? "분석 중..." : aiNote ? "다시 분석" : "AI 분석"}
+                </button>
+              </div>
+              {aiNote && (
+                <dl className="mt-3 flex flex-col gap-3">
+                  {aiNote.summary && (
+                    <div>
+                      <dt className="text-xs text-gray-400">경험 요약</dt>
+                      <dd className="mt-0.5 text-sm text-gray-900">{aiNote.summary}</dd>
+                    </div>
+                  )}
+                  {aiNote.strengths && (
+                    <div>
+                      <dt className="text-xs text-gray-400">희망 직무 대비 강점</dt>
+                      <dd className="mt-0.5 text-sm text-gray-900">{aiNote.strengths}</dd>
+                    </div>
+                  )}
+                  {aiNote.concerns && (
+                    <div>
+                      <dt className="text-xs text-gray-400">
+                        {aiNote.summary ? "더 확인이 필요한 부분" : "오류"}
+                      </dt>
+                      <dd className="mt-0.5 text-sm text-gray-900">{aiNote.concerns}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
           </Section>
 
           <Section index="05" title="전형 · 동의 정보">
