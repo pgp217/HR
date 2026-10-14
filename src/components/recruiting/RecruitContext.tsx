@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type {
   Candidate,
+  CandidateAiNote,
   CandidateInput,
   JobPosting,
   OnboardingTask,
@@ -20,7 +21,7 @@ import {
   type InterviewAssignment,
 } from "@/lib/interview-scheduling";
 import type { InterviewNotice } from "@/lib/interview-noshow";
-import type { InterviewEvaluation } from "@/lib/interview-evaluation";
+import type { EvaluationConsistencyCheck, InterviewEvaluation } from "@/lib/interview-evaluation";
 import { seedInterviewAssignments, seedInterviewEvaluations } from "@/lib/recruit-seed-interviews";
 
 const CANDIDATES_KEY = "hr-recruit-candidates";
@@ -28,6 +29,8 @@ const ONBOARDING_KEY = "hr-recruit-onboarding-tasks";
 const INTERVIEW_ASSIGNMENTS_KEY = "hr-recruit-interview-assignments";
 const INTERVIEW_NOTICES_KEY = "hr-recruit-interview-notices";
 const INTERVIEW_EVALUATIONS_KEY = "hr-recruit-interview-evaluations";
+const CANDIDATE_AI_NOTES_KEY = "hr-recruit-candidate-ai-notes";
+const EVALUATION_CONSISTENCY_KEY = "hr-recruit-evaluation-consistency";
 
 interface RecruitContextValue {
   candidates: Candidate[];
@@ -42,6 +45,10 @@ interface RecruitContextValue {
     breakdown: Record<string, number>,
     comment: string
   ) => void;
+  candidateAiNotes: CandidateAiNote[];
+  analyzingCandidateIds: Set<string>;
+  analyzeCandidate: (candidateId: string) => void;
+  evaluationConsistencyChecks: EvaluationConsistencyCheck[];
   addCandidate: (input: CandidateInput) => void;
   updateCandidateStage: (id: string, stage: RecruitStage, interviewAt?: string) => void;
   toggleOnboardingTask: (taskId: string) => void;
@@ -65,6 +72,11 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   const [interviewAssignments, setInterviewAssignments] = useState<InterviewAssignment[]>([]);
   const [interviewNotices, setInterviewNotices] = useState<InterviewNotice[]>([]);
   const [interviewEvaluations, setInterviewEvaluations] = useState<InterviewEvaluation[]>([]);
+  const [candidateAiNotes, setCandidateAiNotes] = useState<CandidateAiNote[]>([]);
+  const [analyzingCandidateIds, setAnalyzingCandidateIds] = useState<Set<string>>(new Set());
+  const [evaluationConsistencyChecks, setEvaluationConsistencyChecks] = useState<
+    EvaluationConsistencyCheck[]
+  >([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Read from localStorage only after mount so the server-rendered HTML and
@@ -108,12 +120,20 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
       (e) => !storedEvaluationKeys.has(`${e.candidateId}::${e.interviewerName}`)
     );
 
+    const storedAiNotes = readLocalStorage<CandidateAiNote[]>(CANDIDATE_AI_NOTES_KEY, []);
+    const storedConsistencyChecks = readLocalStorage<EvaluationConsistencyCheck[]>(
+      EVALUATION_CONSISTENCY_KEY,
+      []
+    );
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCandidates([...refreshedCandidates, ...missingSeedCandidates]);
     setOnboardingTasks([...storedTasks, ...missingSeedTasks]);
     setInterviewAssignments([...storedAssignments, ...missingSeedAssignments]);
     setInterviewNotices(storedNotices);
     setInterviewEvaluations([...storedEvaluations, ...missingSeedEvaluations]);
+    setCandidateAiNotes(storedAiNotes);
+    setEvaluationConsistencyChecks(storedConsistencyChecks);
     setHydrated(true);
   }, []);
 
@@ -136,6 +156,14 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated) writeLocalStorage(INTERVIEW_EVALUATIONS_KEY, interviewEvaluations);
   }, [interviewEvaluations, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) writeLocalStorage(CANDIDATE_AI_NOTES_KEY, candidateAiNotes);
+  }, [candidateAiNotes, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) writeLocalStorage(EVALUATION_CONSISTENCY_KEY, evaluationConsistencyChecks);
+  }, [evaluationConsistencyChecks, hydrated]);
 
   function addCandidate(input: CandidateInput) {
     const candidate: Candidate = {
@@ -242,7 +270,9 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
   }
 
   // 같은 (지원자, 면접관) 조합으로 이미 평가가 있으면 덮어쓰고, 없으면
-  // 새로 추가한다.
+  // 새로 추가한다. 저장 직후 점수-코멘트 불일치를 AI로 1차 점검한다(비동기,
+  // 평가 저장 자체를 막지 않음) — AI 역량진단의 "제출 즉시 1차 채점" 패턴과
+  // 같다.
   function submitEvaluation(
     candidateId: string,
     interviewerName: string,
@@ -267,6 +297,99 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
       next[idx] = record;
       return next;
     });
+    checkEvaluationConsistency(candidateId, interviewerName, breakdown, score, comment);
+  }
+
+  async function checkEvaluationConsistency(
+    candidateId: string,
+    interviewerName: string,
+    breakdown: Record<string, number>,
+    total: number,
+    comment: string
+  ) {
+    try {
+      const res = await fetch("/api/recruit/check-evaluation", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ breakdown, total, comment }),
+      });
+      if (!res.ok) return; // 점검 실패해도 평가 저장 자체는 이미 끝난 상태라 조용히 무시한다.
+      const data = (await res.json()) as { flagged: boolean; note: string };
+      const record: EvaluationConsistencyCheck = {
+        candidateId,
+        interviewerName,
+        flagged: data.flagged,
+        note: data.note,
+        checkedAt: new Date().toISOString(),
+      };
+      setEvaluationConsistencyChecks((prev) => {
+        const idx = prev.findIndex(
+          (c) => c.candidateId === candidateId && c.interviewerName === interviewerName
+        );
+        if (idx === -1) return [...prev, record];
+        const next = [...prev];
+        next[idx] = record;
+        return next;
+      });
+    } catch {
+      // 네트워크 오류 등은 조용히 무시 — 이 점검은 참고용 보조 기능이라
+      // 실패해도 평가 저장이나 다른 기능에 영향을 주지 않는다.
+    }
+  }
+
+  // 지원자의 자소서/경력 서술을 AI로 1차 분석한다. 적합도 점수에는 반영되지
+  // 않는 참고 자료이며, 담당자가 "AI 분석" 버튼을 눌렀을 때만 호출된다.
+  async function analyzeCandidate(candidateId: string) {
+    const candidate = candidates.find((c) => c.id === candidateId);
+    if (!candidate) return;
+    setAnalyzingCandidateIds((prev) => new Set(prev).add(candidateId));
+    try {
+      const res = await fetch("/api/recruit/analyze-candidate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          desiredRole: candidate.desiredRole,
+          mainTasks: candidate.mainTasks,
+          previousExperience: candidate.previousExperience,
+          selfIntroduction: candidate.selfIntroduction,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const record: CandidateAiNote = {
+          candidateId,
+          summary: "",
+          strengths: "",
+          concerns: data.error ?? "분석에 실패했습니다.",
+          analyzedAt: new Date().toISOString(),
+        };
+        setCandidateAiNotes((prev) => [...prev.filter((n) => n.candidateId !== candidateId), record]);
+        return;
+      }
+      const record: CandidateAiNote = {
+        candidateId,
+        summary: data.summary,
+        strengths: data.strengths,
+        concerns: data.concerns,
+        analyzedAt: new Date().toISOString(),
+      };
+      setCandidateAiNotes((prev) => [...prev.filter((n) => n.candidateId !== candidateId), record]);
+    } catch {
+      const record: CandidateAiNote = {
+        candidateId,
+        summary: "",
+        strengths: "",
+        concerns: "네트워크 오류로 분석에 실패했습니다.",
+        analyzedAt: new Date().toISOString(),
+      };
+      setCandidateAiNotes((prev) => [...prev.filter((n) => n.candidateId !== candidateId), record]);
+    } finally {
+      setAnalyzingCandidateIds((prev) => {
+        const next = new Set(prev);
+        next.delete(candidateId);
+        return next;
+      });
+    }
   }
 
   function updateOnboardingTask(
@@ -285,6 +408,8 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     setInterviewAssignments(seedInterviewAssignments);
     setInterviewNotices([]);
     setInterviewEvaluations(seedInterviewEvaluations);
+    setCandidateAiNotes([]);
+    setEvaluationConsistencyChecks([]);
   }
 
   function resetDemoData() {
@@ -293,6 +418,8 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     setInterviewAssignments([]);
     setInterviewNotices([]);
     setInterviewEvaluations([]);
+    setCandidateAiNotes([]);
+    setEvaluationConsistencyChecks([]);
   }
 
   const value: RecruitContextValue = {
@@ -303,6 +430,10 @@ export function RecruitProvider({ children }: { children: React.ReactNode }) {
     interviewNotices,
     interviewEvaluations,
     submitEvaluation,
+    candidateAiNotes,
+    analyzingCandidateIds,
+    analyzeCandidate,
+    evaluationConsistencyChecks,
     addCandidate,
     updateCandidateStage,
     toggleOnboardingTask,

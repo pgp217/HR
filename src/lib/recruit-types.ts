@@ -61,6 +61,17 @@ export interface Candidate {
 
 export type CandidateInput = Omit<Candidate, "id" | "createdAt" | "stage" | "interviewAt">;
 
+// 자소서/경력 서술형 필드에 대한 AI 1차 분석 — 적합도 점수(computeFitScore)에는
+// 반영되지 않는 참고 자료다. 채용 담당자가 "AI 분석" 버튼을 눌렀을 때만
+// 생성되고, 최종 서류 판단은 담당자가 그대로 한다.
+export interface CandidateAiNote {
+  candidateId: string;
+  summary: string; // 경험 요약
+  strengths: string; // 희망 직무 대비 강점
+  concerns: string; // 더 확인이 필요한 부분
+  analyzedAt: string; // ISO datetime
+}
+
 export type PostingStatus = "모집중" | "마감";
 
 export interface JobPosting {

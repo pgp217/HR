@@ -13,8 +13,14 @@ const stageStyles: Partial<Record<RecruitStage, string>> = {
 };
 
 export default function InterviewResultRecording() {
-  const { candidates, interviewAssignments, interviewEvaluations, submitEvaluation, updateCandidateStage } =
-    useRecruit();
+  const {
+    candidates,
+    interviewAssignments,
+    interviewEvaluations,
+    submitEvaluation,
+    updateCandidateStage,
+    evaluationConsistencyChecks,
+  } = useRecruit();
 
   const [editing, setEditing] = useState<{ candidateId: string; interviewerName: string } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -25,6 +31,11 @@ export default function InterviewResultRecording() {
     for (const e of interviewEvaluations) map.set(`${e.candidateId}::${e.interviewerName}`, e);
     return map;
   }, [interviewEvaluations]);
+  const consistencyByKey = useMemo(() => {
+    const map = new Map<string, (typeof evaluationConsistencyChecks)[number]>();
+    for (const c of evaluationConsistencyChecks) map.set(`${c.candidateId}::${c.interviewerName}`, c);
+    return map;
+  }, [evaluationConsistencyChecks]);
 
   // 처리해야 할 것(평가 완료·전형 처리 대기)이 위로, 평가 입력이 아직 안 된
   // 건이 다음, 이미 합격/불합격 처리된 과거 이력이 가장 아래로 오도록
@@ -70,7 +81,8 @@ export default function InterviewResultRecording() {
           <h3 className="text-sm font-semibold text-gray-900">면접 결과 기록</h3>
           <p className="mt-0.5 text-xs text-gray-400">
             내부·외부 면접관이 각자 평가표를 입력하면 두 점수의 평균이 종합 점수가 됩니다. 종합 점수를
-            근거로 합격/불합격 처리하면 채용 대시보드의 전형 단계별 인원에 바로 반영됩니다.
+            근거로 합격/불합격 처리하면 채용 대시보드의 전형 단계별 인원에 바로 반영됩니다. 평가 저장 시
+            AI가 점수와 코멘트가 서로 맞는지 1차로 확인해 표시합니다(참고용).
           </p>
         </div>
         <button
@@ -113,6 +125,14 @@ export default function InterviewResultRecording() {
                         ) : (
                           <span className="text-xs text-gray-300">미입력</span>
                         )}
+                        {consistencyByKey.get(`${c.id}::${a.internalInterviewer}`)?.flagged && (
+                          <span
+                            title={consistencyByKey.get(`${c.id}::${a.internalInterviewer}`)?.note}
+                            className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700"
+                          >
+                            ⚠ 점수-코멘트 확인 필요
+                          </span>
+                        )}
                         <button
                           onClick={() => setEditing({ candidateId: c.id, interviewerName: a.internalInterviewer })}
                           className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
@@ -130,6 +150,14 @@ export default function InterviewResultRecording() {
                           </span>
                         ) : (
                           <span className="text-xs text-gray-300">미입력</span>
+                        )}
+                        {consistencyByKey.get(`${c.id}::${a.externalInterviewer}`)?.flagged && (
+                          <span
+                            title={consistencyByKey.get(`${c.id}::${a.externalInterviewer}`)?.note}
+                            className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700"
+                          >
+                            ⚠ 점수-코멘트 확인 필요
+                          </span>
                         )}
                         <button
                           onClick={() => setEditing({ candidateId: c.id, interviewerName: a.externalInterviewer })}

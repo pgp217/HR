@@ -23,3 +23,13 @@ export function averageScore(evaluations: InterviewEvaluation[]): number | null 
   if (evaluations.length === 0) return null;
   return evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length;
 }
+
+// 평가 제출 직후 AI가 점수-코멘트 불일치를 1차로 점검한 결과. 평가 자체를
+// 막거나 점수를 바꾸지 않고, 담당자가 다시 확인해야 할 평가에 표시만 한다.
+export interface EvaluationConsistencyCheck {
+  candidateId: string;
+  interviewerName: string;
+  flagged: boolean;
+  note: string;
+  checkedAt: string; // ISO datetime
+}
